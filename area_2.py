@@ -38,7 +38,7 @@ while True:
 
     # 이미지 크기 조정
     frame = cv2.resize(frame, (640, 480))
-    
+
     #화면 반전
     frame= cv2.flip(frame,1) 
 
@@ -90,6 +90,8 @@ while True:
 
     result = frame
 
+
+        
     # 점수를 이미지에 출력
     cv2.putText(result, f"Score: {score}", (10, 30), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 255), 2)
 
