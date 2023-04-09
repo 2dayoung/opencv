@@ -1,3 +1,5 @@
+#비프음
+
 from pynput import keyboard
 import winsound
 import time
