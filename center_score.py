@@ -1,4 +1,4 @@
-#가운데 원 
+#가운데 원에 들어오면 점수
 
 import cv2
 import numpy as np
