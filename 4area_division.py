@@ -40,6 +40,11 @@ cv2.createTrackbar('high_V', 'frame', 255, 255, nothing)
 # 웹캠 캡처 생성
 cap = cv2.VideoCapture(0)
 
+#count 
+cnt1=0
+cnt2=0
+cnt3=0
+cnt4=0
 
 while True:
     # 현재 프레임 캡처
@@ -93,17 +98,34 @@ while True:
 
         if x < 160 and y > 360:
             cv2.putText(result, "Do", (10, 30), cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 255, 255), 2)
-            do.play()
+            # do.play()
+            cnt1+=1
         if x > 160 and x < 320 and y > 360:
-            cv2.putText(result, "Re", (10, 30), cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 255, 255), 2)
-            re.play()
+            cv2.putText(result, "Re", (170, 30), cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 255, 255), 2)
+            # re.play()
+            cnt2+=1
         if x > 320 and x < 480 and y > 360:
-            cv2.putText(result, "Mi", (10, 30), cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 255, 255), 2)
-            mi.play()
+            cv2.putText(result, "Mi", (330, 30), cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 255, 255), 2)
+            # mi.play()
+            cnt3+=1
         if x > 480 and x < 640 and y> 360:
-            cv2.putText(result, "Fa", (10, 30), cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 255, 255), 2)
-            fa.play()
+            cv2.putText(result, "Fa", (490, 30), cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 255, 255), 2)
+            # fa.play()
+            cnt4+=1
         cv2.rectangle(result, (x-w//2, y-h//2), (x+w//2, y+h//2), (0, 0, 255), 2)
+
+    if cnt1 > 5:
+        do.play()
+        cnt1=0
+    if cnt2 > 5:
+        re.play()
+        cnt2=0
+    if cnt3 > 5:
+        mi.play()
+        cnt3=0
+    if cnt4 > 5:
+        fa.play()
+        cnt4=0
 
     # 영역 표시 
     cv2.rectangle(result,(0,360),(160,480),(0,0,255),2),  #도 
