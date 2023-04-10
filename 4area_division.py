@@ -59,51 +59,34 @@ while True:
     mask = cv2.inRange(hsv, lower_color, upper_color)
     cv2.imshow("mask",mask)
 
-    #잡음제거 
+       # 잡음 제거를 위한 모폴로지 연산
     kernel = np.ones((5,5),np.uint8)
     opening = cv2.morphologyEx(mask, cv2.MORPH_OPEN, kernel)
     closing = cv2.morphologyEx(opening, cv2.MORPH_CLOSE, kernel)
-    mask = closing
 
-    # 파란색 영역 마스크 생성
-    # mask = cv2.inRange(hsv, lower_blue, upper_blue)
-    
-    #kernel = cv2.getStructuringElement(cv2.MORPH_RECT, (10, 10))
-    #cv2.morphologyEx(mask,cv2.MORPH_OPEN,kernel)
-    #cv2.erode(mask,mask)
-    cv2.imshow("open",mask)
+    # 객체 검출
+    contours, _ = cv2.findContours(closing, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
 
-    # 마스크에서 파란색 물체 찾기
-    contours, _ = cv2.findContours(mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+    # 두 개의 가장 큰 객체만 추출
+    contours = sorted(contours, key=cv2.contourArea, reverse=True)[:2]
 
-    #두개만 추출
-    # contours = sorted(contours, key=cv2.contourArea, reverse=True)[:2]
+    # 객체 위치 추출
+    for c in contours:
+        x, y, w, h = cv2.boundingRect(c)
+        
+        #x와 y를 객체 중심점으로 바꾸기 
+        x= x + w//2
+        y= y + h//2
 
-    # 파란색 물체가 존재하면 점수 증가
-    if len(contours) >= 2:
-        # 파란색 원 중심 좌표 추출
-        center_list = []
-        for cnt in contours:
-            (x, y), radius = cv2.minEnclosingCircle(cnt)
-            if radius > 5:
-                center_list.append((int(x), int(y)))
-        #for center in center_list:
-            #cv2.circle(result, center, int(radius), (0, 255, 0), 2)
-        # 두 개의 원이 존재하면 각각 원으로 표시
-        if len(center_list) > 2:
-            for center in center_list:
-                cv2.circle(frame, center, int(radius), (0, 255, 0), 2)
-
-            # 왼쪽 하단 영역에 들어온 원이면 점수 증가
-            if center_list[0][0] < 160 and center_list[0][1] > 360:
-                cv2.putText(result, "Do", (10, 30), cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 255, 255), 2)
-            if center_list[1][0] > 160 and center_list[1][0] < 320 and center_list[1][1] > 360:
-                cv2.putText(result, "Re", (10, 30), cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 255, 255), 2)
-            if center_list[1][0] > 320 and center_list[1][0] < 480 and center_list[1][1] > 360:
-                cv2.putText(result, "Mi", (10, 30), cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 255, 255), 2)
-            if center_list[1][0] > 480 and center_list[1][0] < 640 and center_list[1][1] > 360:
-                cv2.putText(result, "Fa", (10, 30), cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 255, 255), 2)
-
+        if x < 160 and y > 360:
+            cv2.putText(result, "Do", (10, 30), cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 255, 255), 2)
+        if x > 160 and x < 320 and y > 360:
+            cv2.putText(result, "Re", (10, 30), cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 255, 255), 2)
+        if x > 320 and x < 480 and y > 360:
+            cv2.putText(result, "Mi", (10, 30), cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 255, 255), 2)
+        if x > 480 and x < 640 and y> 360:
+            cv2.putText(result, "Fa", (10, 30), cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 255, 255), 2)
+        cv2.rectangle(result, (x-w//2, y-h//2), (x+w//2, y+h//2), (0, 0, 255), 2)
 
     # 영역 표시 
     cv2.rectangle(result,(0,360),(160,480),(0,0,255),2),  #도 
