@@ -43,9 +43,9 @@ while True:
     result= cv2.flip(frame,1) 
 
     # 이미지를 BGR에서 HSV로 변환
-    hsv = cv2.cvtColor(frame, cv2.COLOR_BGR2HSV)
+    hsv = cv2.cvtColor(result, cv2.COLOR_BGR2HSV)
 
-        # 트랙바 값으로 색상 범위를 설정합니다.
+    # 트랙바 값으로 색상 범위를 설정합니다.
     low_H = cv2.getTrackbarPos('low_H', 'frame')
     low_S = cv2.getTrackbarPos('low_S', 'frame')
     low_V = cv2.getTrackbarPos('low_V', 'frame')
@@ -57,14 +57,27 @@ while True:
 
     # HSV 이미지에서 색상 범위에 해당하는 영역을 이진화합니다.
     mask = cv2.inRange(hsv, lower_color, upper_color)
+    cv2.imshow("mask",mask)
+
+    #잡음제거 
+    kernel = np.ones((5,5),np.uint8)
+    opening = cv2.morphologyEx(mask, cv2.MORPH_OPEN, kernel)
+    closing = cv2.morphologyEx(opening, cv2.MORPH_CLOSE, kernel)
+    mask = closing
 
     # 파란색 영역 마스크 생성
     # mask = cv2.inRange(hsv, lower_blue, upper_blue)
-    cv2.imshow("mask",mask)
+    
+    #kernel = cv2.getStructuringElement(cv2.MORPH_RECT, (10, 10))
+    #cv2.morphologyEx(mask,cv2.MORPH_OPEN,kernel)
+    #cv2.erode(mask,mask)
+    cv2.imshow("open",mask)
 
     # 마스크에서 파란색 물체 찾기
     contours, _ = cv2.findContours(mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
 
+    #두개만 추출
+    # contours = sorted(contours, key=cv2.contourArea, reverse=True)[:2]
 
     # 파란색 물체가 존재하면 점수 증가
     if len(contours) >= 2:
@@ -74,8 +87,8 @@ while True:
             (x, y), radius = cv2.minEnclosingCircle(cnt)
             if radius > 5:
                 center_list.append((int(x), int(y)))
-        # for center in center_list:
-        #     cv2.circle(frame, center, int(radius), (0, 255, 0), 2)
+        #for center in center_list:
+            #cv2.circle(result, center, int(radius), (0, 255, 0), 2)
         # 두 개의 원이 존재하면 각각 원으로 표시
         if len(center_list) > 2:
             for center in center_list:
