@@ -2,6 +2,16 @@
 
 import cv2
 import numpy as np
+import simpleaudio as sa
+
+# 특정 영역과 실행할 wav 파일을 딕셔너리로 저장
+# objects = {"area1": "./sounds/1.wav",
+#            "area2": "./sounds/2.wav",
+#            "area3": "./sounds/3.wav",
+#            "area4": "./sounds/4.wav"}
+do = sa.WaveObject.from_wave_file("sounds/1.wav")
+# wav 파일 로드
+
 
 # 트랙바를 위한 콜백 함수
 def nothing(x):
@@ -80,12 +90,16 @@ while True:
 
         if x < 160 and y > 360:
             cv2.putText(result, "Do", (10, 30), cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 255, 255), 2)
+            do.play()
         if x > 160 and x < 320 and y > 360:
             cv2.putText(result, "Re", (10, 30), cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 255, 255), 2)
+
         if x > 320 and x < 480 and y > 360:
             cv2.putText(result, "Mi", (10, 30), cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 255, 255), 2)
+
         if x > 480 and x < 640 and y> 360:
             cv2.putText(result, "Fa", (10, 30), cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 255, 255), 2)
+
         cv2.rectangle(result, (x-w//2, y-h//2), (x+w//2, y+h//2), (0, 0, 255), 2)
 
     # 영역 표시 
