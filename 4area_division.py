@@ -10,6 +10,9 @@ import simpleaudio as sa
 #            "area3": "./sounds/3.wav",
 #            "area4": "./sounds/4.wav"}
 do = sa.WaveObject.from_wave_file("sounds/1.wav")
+re = sa.WaveObject.from_wave_file("sounds/2.wav")
+mi = sa.WaveObject.from_wave_file("sounds/3.wav")
+fa = sa.WaveObject.from_wave_file("sounds/4.wav")
 # wav 파일 로드
 
 
@@ -93,13 +96,13 @@ while True:
             do.play()
         if x > 160 and x < 320 and y > 360:
             cv2.putText(result, "Re", (10, 30), cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 255, 255), 2)
-
+            re.play()
         if x > 320 and x < 480 and y > 360:
             cv2.putText(result, "Mi", (10, 30), cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 255, 255), 2)
-
+            mi.play()
         if x > 480 and x < 640 and y> 360:
             cv2.putText(result, "Fa", (10, 30), cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 255, 255), 2)
-
+            fa.play()
         cv2.rectangle(result, (x-w//2, y-h//2), (x+w//2, y+h//2), (0, 0, 255), 2)
 
     # 영역 표시 
