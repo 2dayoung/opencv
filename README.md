@@ -9,6 +9,8 @@
 2. wav파일
 - 무료다운 사이트 찾아야함
    - https://samplefocus.com/collections/keys-notes
+- https://github.com/ky0422/keyboard/tree/main/public/resources/notes
+
 - 직접 녹음
 
 3. MIDI를 사용해서 추출하기       
@@ -71,3 +73,5 @@
    - 프로젝터 쓸것인지 
    - 카메라 위치 어떻게 할것인지 
 - 
+
+## 2023.04.2 Zoom 미팅 예정
