@@ -27,14 +27,11 @@ while True:
         for handLms in results.multi_hand_landmarks:
             # 각 손가락 끝의 랜드마크 좌표 추출
             fingertips = []
-            fingerindex = []
             for finger_tip_id in [4, 8, 12, 16, 20]:
                 lm = handLms.landmark[finger_tip_id]
-
                 h, w, c = frame.shape   #좌표가 0~1값임.화면상의 픽셀 좌표로 변환하기 위해 이미지의 크기필요 C는 채널
                 cx, cy = int(lm.x *w), int(lm.y*h)
                 fingertips.append((cx,cy))
-                fingerindex.append(finger_tip_id)
 
             # 손가락 끝에 원 그리기
             for fingertip in  fingertips:              
@@ -48,9 +45,7 @@ while True:
                 print("===========")               
                 cnt=0
             
-            
-
-      
+         
     # 결과 보여주기
     cv2.imshow("Fingertip Detection", frame)
 
