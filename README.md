@@ -82,8 +82,10 @@
 - fingetip.py 양손 손가락 끝점 표시( 좌표도 얻을 수 있음)
 - 좌표 추출해봄 
 
-
 <img src="https://user-images.githubusercontent.com/120040559/232230742-473ced31-db51-4e30-a1ea-dcbe0ea0babf.png" width="500"> 
+<img src= https://user-images.githubusercontent.com/120040559/232230876-b6ae64c4-14f4-4fd8-b90b-7b4ed054a80e.JPG width="500"> 
+
+인덱스를 추출한것인데 [엄지,검지,중지,약지,새끼] 순서
 
 ## 2023.04.21 Zoom 미팅 예정
 
