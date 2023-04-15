@@ -24,7 +24,7 @@ while True:
 
         # Extract the coordinates of the fingertips
         fingertips = []
-        for i in range(5):
+        for i in range(1,6,1):         
             landmark = hand_landmarks.landmark[mp_hands.HandLandmark(i*4)]
             x, y = int(landmark.x * image.shape[1]), int(landmark.y * image.shape[0])
             fingertips.append((x, y))
