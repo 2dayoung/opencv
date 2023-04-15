@@ -1,45 +1,49 @@
 import cv2
 import mediapipe as mp
 
-# Initialize Mediapipe Hand Landmark model
+# Mediapipe Hand Landmark 모델 초기화
 mp_hands = mp.solutions.hands
-hands = mp_hands.Hands(static_image_mode=False, max_num_hands=1, min_detection_confidence=0.7, min_tracking_confidence=0.5)
+hands = mp_hands.Hands(static_image_mode=False, 
+                       max_num_hands=2, 
+                       min_detection_confidence=0.7, 
+                       min_tracking_confidence=0.7)
 
-# Initialize webcam
+# 웹캠 초기화
 cap = cv2.VideoCapture(0)
 
 while True:
-    # Read a frame from the webcam
+    # 웹캠에서 프레임 읽기& 좌우반전
     ret, frame = cap.read()
     frame= cv2.flip(frame,1) 
-    # Convert the frame to RGB
+
+    # 프레임을 RGB로 변환
     image = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
 
-    # Process the image using Mediapipe Hand Landmark model
+    # Mediapipe Hand Landmark 모델을 사용하여 이미지 처리
     results = hands.process(image)
 
-    # Extract the landmarks of the hand
     if results.multi_hand_landmarks:
-        hand_landmarks = results.multi_hand_landmarks[0]
+        for handLms in results.multi_hand_landmarks:
+            # 각 손가락 끝의 랜드마크 좌표 추출
+            fingertips = []
+            for finger_tip_id in [4, 8, 12, 16, 20]:
+                lm = handLms.landmark[finger_tip_id]
+                h, w, c = frame.shape   #좌표가 0~1값임.화면상의 픽셀 좌표로 변환하기 위해 이미지의 크기필요 C는 채널
+                cx, cy = int(lm.x *w), int(lm.y*h)
+                fingertips.append((cx, cy))
 
-        # Extract the coordinates of the fingertips
-        fingertips = []
-        for i in range(1,6,1):         
-            landmark = hand_landmarks.landmark[mp_hands.HandLandmark(i*4)]
-            x, y = int(landmark.x * image.shape[1]), int(landmark.y * image.shape[0])
-            fingertips.append((x, y))
+            # 손가락 끝에 원 그리기
+            for fingertip in fingertips:
+                cv2.circle(frame, fingertip, 5, (255, 0, 0), -1)
 
-        # Draw circles on the fingertips
-        for fingertip in fingertips:
-            cv2.circle(frame, fingertip, 5, (255, 0, 0), -1)
+      
+    # 결과 보여주기
+    cv2.imshow("손가락 끝 검출", frame)
 
-    # Show the result
-    cv2.imshow("Fingertip Detection", frame)
-
-    # Exit the loop if the 'q' key is pressed
+    # 'q' 키를 누르면 루프 탈출
     if cv2.waitKey(1) & 0xFF == ord('q'):
         break
 
-# Release the webcam and destroy all windows
+# 웹캠 해제 및 모든 윈도우 종료
 cap.release()
 cv2.destroyAllWindows()
