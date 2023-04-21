@@ -87,68 +87,85 @@ while True:
 
     # 두 개의 가장 큰 객체만 추출
     contours = sorted(contours, key=cv2.contourArea, reverse=True)[:2]
-
+    
     # 객체 위치 추출
     for c in contours:
         x, y, w, h = cv2.boundingRect(c)
-        
+        #print(c.shape)
+        #print("ccc--->",c)
         #x와 y를 객체 중심점으로 바꾸기 
         x= x + w//2
         y= y + h//2
-
+        #print("x , y =",x,y)
         if x < 160 and y > 360:
             cv2.putText(result, "Do", (10, 30), cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 255, 255), 2)
-            if not do_in:
-                do.play()
+     #       if not do_in:
+     #           do.play()
             do_in=True
-            re_in=False
-            mi_in=False
-            fa_in=False
+            # re_in=False
+            # mi_in=False
+            # fa_in=False
+            
+            print("---------")
         elif x > 160 and x < 320 and y > 360:
             cv2.putText(result, "Re", (170, 30), cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 255, 255), 2)
-            if not re_in:
-                re.play()
-            do_in=False
+      #      if not re_in:
+      #          re.play()
+            # do_in=False
             re_in=True
-            mi_in=False
-            fa_in=False
-            
+            # mi_in=False
+            # fa_in=False
+           
+            print("---------")
         elif x > 320 and x < 480 and y > 360:
             cv2.putText(result, "Mi", (330, 30), cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 255, 255), 2)
-            if not mi_in:
-                mi.play()       
-            do_in=False
-            re_in=False
+        #    if not mi_in:
+       #         mi.play()       
+            # do_in=False
+            # re_in=False
             mi_in=True
-            fa_in=False
-            
+            # fa_in=False
+           
+            print("---------")
         elif x > 480 and x < 640 and y> 360:
             cv2.putText(result, "Fa", (490, 30), cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 255, 255), 2)
-            if not fa_in:
-                fa.play()
-            do_in=False
-            re_in=False
-            mi_in=False
+       #     if not fa_in:
+       #         fa.play()
+            # do_in=False
+            # re_in=False
+            # mi_in=False
             fa_in=True
-        else:
-            do_in=False
-            re_in=False
-            mi_in=False
-            fa_in=False
            
+            print("---------")
+        #else:
+        #    do_in=False
+        #    re_in=False
+        #    mi_in=False
+        #    fa_in=False
+            
         cv2.rectangle(result, (x-w//2, y-h//2), (x+w//2, y+h//2), (0, 0, 255), 2)
 
-    # if do_in:
-    #     do.play()
+   
+    if do_in and not re_in and not mi_in and not fa_in:
     
-    # if re_in:
-    #     re.play()
+        do.play()
+        do_in = False  
+            
+    if not do_in and re_in and not mi_in and not fa_in:
+
+        re.play()
+        re_in=False
+
+    
+    if not do_in and not re_in and mi_in and not fa_in:
+
+        mi.play()  
+        mi_in=False
         
-    # if mi_in:
-    #     mi.play()
-    
-    # if fa_in:
-    #     fa.play()
+    if not do_in and not re_in and not mi_in and  fa_in:
+
+        fa.play()
+        fa_in=False
 
 
     # 영역 표시 
