@@ -1,140 +1,128 @@
-#파란 원 영역에 들어오면 점수 + 트랙바 
-
 import cv2
-import numpy as np
+import mediapipe as mp
 import simpleaudio as sa
+import pygame.midi
+import time
 
-# 특정 영역과 실행할 wav 파일을 딕셔너리로 저장
+# Initialize Pygame and the MIDI module
+pygame.init()
+pygame.midi.init()
 
-do = sa.WaveObject.from_wave_file("sounds/1.wav")
-re = sa.WaveObject.from_wave_file("sounds/2.wav")
-mi = sa.WaveObject.from_wave_file("sounds/3.wav")
-fa = sa.WaveObject.from_wave_file("sounds/4.wav")
-# wav 파일 로드
+# Get the ID of the first output device
+device_id = pygame.midi.get_default_output_id()
 
+# Open the MIDI output port
+output = pygame.midi.Output(device_id)
 
-# 트랙바를 위한 콜백 함수
-def nothing(x):
-    pass
+# Define a dictionary that maps note names to MIDI note numbers
+notes = {'C': 60, 'D': 62, 'E': 64, 'F': 65, 'G': 67, 'A': 69, 'B': 71}
 
-# 웹캠에서 프레임을 캡처합니다.
+def play_note(note_name):
+    # Convert the note name to a MIDI note number
+    note_number = notes[note_name]
+    # Create a note on message and send it to the output port
+    note_on = [0x90, note_number, 127]
+    output.write_short(*note_on)
+    # Wait for a short time to simulate the duration of the note
+    time.sleep(0.5)
+    # Create a note off message and send it to the output port
+    note_off = [0x80, note_number, 0]
+    output.write_short(*note_off)
+
+def is_object_in_area(object_location, area):
+    x, y = object_location
+    start_x, start_y, width, height = area
+    return start_x <= x < start_x + width and start_y <= y < start_y + height
+
+# Mediapipe Hand Landmark 모델 초기화
+mp_hands = mp.solutions.hands
+hands = mp_hands.Hands(static_image_mode=False, 
+                       max_num_hands=2, 
+                       min_detection_confidence=0.7, 
+                       min_tracking_confidence=0.7)
+
+# 웹캠 초기화
 cap = cv2.VideoCapture(0)
+cnt=0
 
-# 노란색 범위 설정 (HSV)
-lower = (17, 94, 94)
-upper = (32, 255, 255)
+# 10개의 객체의 위치를 나타내는 리스트
+object_locations = [(2, 4), (5, 3), (1, 2), (4, 1), (3, 5), (5, 2), (2, 3), (1, 5), (3, 1), (4, 4)]
 
-# 웹캠 캡처 생성
-cap = cv2.VideoCapture(0)
+# 5개의 영역을 나타내는 리스트, 각각의 영역은 (시작 x 좌표, 시작 y 좌표, 가로 길이, 세로 길이) 형태로 저장
+areas = [(80, 300, 100, 60), (180, 300, 100, 60),(280, 300, 100, 60),(380, 300, 100, 60),(480, 300, 100, 60)]
 
-#in인지 상태 저장 변수
-do_in=False
-re_in=False
-mi_in=False
-fa_in=False
 
 while True:
-    # 현재 프레임 캡처
+    # 웹캠에서 프레임 읽기& 좌우반전 &크기
     ret, frame = cap.read()
-
-    # 프레임이 캡처되지 않았으면 종료
-    if not ret:
-        break
-
-    # 이미지 크기 조정
-    frame = cv2.resize(frame, (640, 480))
-
-    #화면 반전
     result= cv2.flip(frame,1) 
+    # frame = cv2.resize(frame,(920,720))
 
-    # 이미지를 BGR에서 HSV로 변환
-    hsv = cv2.cvtColor(result, cv2.COLOR_BGR2HSV)
+    # 프레임을 RGB로 변환
+    image = cv2.cvtColor(result, cv2.COLOR_BGR2RGB)
 
-    # HSV 이미지에서 색상 범위에 해당하는 영역을 이진화합니다.
-    mask = cv2.inRange(hsv, lower, upper)
-    cv2.imshow("mask",mask)
+    # Mediapipe Hand Landmark 모델을 사용하여 이미지 처리
+    results = hands.process(image)
 
-    # 잡음 제거를 위한 모폴로지 연산
-    kernel = np.ones((5,5),np.uint8)
-    opening = cv2.morphologyEx(mask, cv2.MORPH_OPEN, kernel)
-    closing = cv2.morphologyEx(opening, cv2.MORPH_CLOSE, kernel)
+    if results.multi_hand_landmarks:
+        for handLms in results.multi_hand_landmarks:
+            # 각 손가락 끝의 랜드마크 좌표 추출
+            fingertips = []
+            for finger_tip_id in [4, 8, 12, 16, 20]:
+                lm = handLms.landmark[finger_tip_id]
+                h, w, c = result.shape   #좌표가 0~1값임.화면상의 픽셀 좌표로 변환하기 위해 이미지의 크기필요 C는 채널
+                cx, cy = int(lm.x *w), int(lm.y*h)
+                fingertips.append((cx,cy))
 
-    # 객체 검출
-    contours, _ = cv2.findContours(closing, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+            # 손가락 끝에 원 그리기
+            for fingertip in  fingertips:              
+                cv2.circle(result, fingertip, 5, (255, 0, 0), -1)
+                # print("(x,y) =",fingertip[1])  
+                # print("(x,y) =",fingertip)               
+                cnt +=1
+                object_locations = fingertips
 
-    # 두 개의 가장 큰 객체만 추출
-    contours = sorted(contours, key=cv2.contourArea, reverse=True)[:2]
-    
-    # 객체 위치 추출
-    for c in contours:
-        x, y, w, h = cv2.boundingRect(c)
-
-        #x와 y를 객체 중심점으로 바꾸기 
-        x= x + w//2
-        y= y + h//2
-        #print("x , y =",x,y)
-        if x > 80 and x <190 and y > 300 and y < 360:
-            cv2.putText(result, "Do", (10, 30), cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 255, 255), 2)
-
+            #5개씩 구분
+            if cnt == 5 :
+                # print(fingertips)
+                # print("===========")               
+                cnt=0
             
-
-        elif x > 190 and x < 300 and y > 300 and y < 360:
-            cv2.putText(result, "Re", (170, 30), cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 255, 255), 2)
-
-           
-   
-        elif x > 300 and x <410 and y > 300 and y < 360:
-            cv2.putText(result, "Mi", (330, 30), cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 255, 255), 2)
-
-           
-       
-        elif x > 410 and x < 520 and y > 300 and y < 360:
-            cv2.putText(result, "Fa", (490, 30), cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 255, 255), 2)
-
-        elif x > 520 and x < 620 and y > 300 and y < 360:
-            cv2.putText(result, "sol", (490, 30), cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 255, 255), 2)
-
-  
-        cv2.rectangle(result, (x-w//2, y-h//2), (x+w//2, y+h//2), (0, 0, 255), 2)
-
-   
-    if do_in and not re_in and not mi_in and not fa_in:
-    
-        do.play()
-        do_in = False  
+            # 모든 객체가 영역 내에 있는지 검사
+            for i in range(len(areas)):
+                for location in object_locations:
+                    if is_object_in_area(location, areas[i]):
+                        num = str(i)
+                        cv2.putText(result, num, (100+i*50, 30), cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 255, 255), 2)
+                        event = i
+                        if event == 1:
+                            play_note('C')
+                        elif event == 2:
+                            play_note('D')
+                        elif event == 3:
+                            play_note('E')
+                        elif event == 4:
+                            play_note('F')
             
-    if not do_in and re_in and not mi_in and not fa_in:
-
-        re.play()
-        re_in=False
-
-    
-    if not do_in and not re_in and mi_in and not fa_in:
-
-        mi.play()  
-        mi_in=False
-        
-    if not do_in and not re_in and not mi_in and  fa_in:
-
-        fa.play()
-        fa_in=False
-
-
+            
     # 영역 표시 
     cv2.rectangle(result, (80, 300),(180, 360),(0,0,255),2),  #도 
-    cv2.rectangle(result,(190, 300),(290, 360),(54,148,255),2)  #레
-    cv2.rectangle(result,(300, 300),(400, 360),(0,228,255),2)  #미
-    cv2.rectangle(result,(410, 300),(510, 360),(22,219,29),2)  #파
-    cv2.rectangle(result,(520, 300),(620, 360),(22,2,29),2)  #파
+    cv2.rectangle(result,(180, 300),(280, 360),(54,148,255),2)  #레
+    cv2.rectangle(result,(280, 300),(380, 360),(0,228,255),2)  #미
+    cv2.rectangle(result,(380, 300),(480, 360),(22,219,29),2)  #파
+    cv2.rectangle(result,(480, 300),(580, 360),(22,2,29),2)  #파
 
 
-    # 이미지 출력
-    cv2.imshow("Webcam", result)
+    # 결과 보여주기
+    cv2.imshow("Fingertip Detection division", result)
 
-    # q 키를 누르면 종료
+    # 'q' 키를 누르면 루프 탈출
     if cv2.waitKey(1) & 0xFF == ord('q'):
         break
 
-# 자원 해제
+# 웹캠 해제 및 모든 윈도우 종료
+output.close()
+pygame.midi.quit()
 cap.release()
 cv2.destroyAllWindows()
+
