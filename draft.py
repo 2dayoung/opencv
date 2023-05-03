@@ -82,6 +82,16 @@ object_locations = [(2, 4), (5, 3), (1, 2), (4, 1), (3, 5), (5, 2), (2, 3), (1, 
 # 5개의 영역을 나타내는 리스트, 각각의 영역은 (시작 x 좌표, 시작 y 좌표, 가로 길이, 세로 길이) 형태로 저장
 areas = [(80, 300, 100, 60), (180, 300, 100, 60),(280, 300, 100, 60),(380, 300, 100, 60),(480, 300, 100, 60)]
 
+def is_object_in_any_area(object_location, areas):
+    for area in areas:
+        if is_object_in_area(object_location, area):
+            return True
+    return False
+
+def stop_music():
+    pygame.mixer.music.stop()
+
+
 
 while True:
     # 웹캠에서 프레임 읽기& 좌우반전 &크기
@@ -121,6 +131,9 @@ while True:
             
     flag = False
 
+    music_playing = False
+    music_filename = ""
+
     for location in object_locations:
         for i in range(len(areas)):
             if is_object_in_area(location, areas[i]):
@@ -128,31 +141,35 @@ while True:
                 cv2.putText(result, num, (100+i*50, 30), cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 255, 255), 2)
                 event = i
                 if event == 0:
-                    play_music(midi_filename[event])
-                    print('play ',midi_filename[event])
-                    flag = True
+                    music_filename = midi_filename[event]
                     break
                 elif event == 1:
-                    play_music(midi_filename[event])
-                    print('play ',midi_filename[event])
-                    flag = True
+                    music_filename = midi_filename[event]
                     break
                 elif event == 2:
-                    play_music(midi_filename[event])
-                    print('play ',midi_filename[event])
-                    flag = True
+                    music_filename = midi_filename[event]
                     break
                 elif event == 3:
-                    play_music(midi_filename[event])
-                    print('play ',midi_filename[event])
-                    flag = True
+                    music_filename = midi_filename[event]
                     break
                 elif event == 4:
-                    play_music(midi_filename[event])
-                    print('play ',midi_filename[event])
-                    flag = True
+                    music_filename = midi_filename[event]
                     break
-                
+
+        if music_filename != "" and not music_playing:
+            play_music(music_filename)
+            print('play', music_filename)
+            music_playing = True
+        
+        if music_playing and not is_object_in_any_area(location, areas):
+            stop_music()
+            print('stop', music_filename)
+            music_playing = False
+            music_filename = ""
+
+
+
+
       
 
 
