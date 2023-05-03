@@ -7,14 +7,20 @@ mid = mido.MidiFile()
 track = mido.MidiTrack()
 mid.tracks.append(track)
 
-# Add a note on and note off message to the track
-note_on = mido.Message('note_on', note=60, velocity=64, time=0)
-note_off = mido.Message('note_off', note=60, velocity=64, time=500)
-track.append(note_on)
-track.append(note_off)
+notes = {60, 62, 64,  65,  67,  69, 71}
 
-# Save the MIDI file
-mid.save('example1.mid')
+for i in notes: 
+    note_on = mido.Message('note_on', note=i, velocity=64, time=0)
+    note_off = mido.Message('note_off', note=i, velocity=64, time=500)
+    track.append(note_on)
+    track.append(note_off)
+    
+    filename = str(i) +'.mid'
+
+    # Save the MIDI file
+    mid.save(filename)
+
+
 
 '''
 여기서 note_on 이벤트는 노트를 켜는 이벤트이며, 노트 번호(note)와 
