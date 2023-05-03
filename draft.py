@@ -4,6 +4,37 @@ import simpleaudio as sa
 import pygame.midi
 import time
 
+#=====================
+import pygame
+
+
+    
+midi_filename = []
+notes = [60, 62, 64, 65, 67, 69, 71]
+for i, note in enumerate(notes):    
+    midi_filename.append(str(note) +'.mid')
+
+    print(midi_filename[i],"  ",i)
+    
+
+# mixer config
+freq = 44100  # audio CD quality
+bitsize = -16   # unsigned 16 bit
+channels = 2  # 1 is mono, 2 is stereo
+buffer = 1024   # number of samples
+pygame.mixer.init(freq, bitsize, channels, buffer)
+
+# optional volume 0 to 1.0
+pygame.mixer.music.set_volume(0.4)
+
+def play_music(midi_filename):
+  '''Stream music_file in a blocking manner'''
+  clock = pygame.time.Clock()
+  pygame.mixer.music.load(midi_filename)
+  pygame.mixer.music.play()
+  while pygame.mixer.music.get_busy():
+    clock.tick(30) # check if playback has finished
+#=====================
 # Initialize Pygame and the MIDI module
 pygame.init()
 pygame.midi.init()
@@ -88,21 +119,45 @@ while True:
                 # print("===========")               
                 cnt=0
             
-            # 모든 객체가 영역 내에 있는지 검사
-            for i in range(len(areas)):
-                for location in object_locations:
-                    if is_object_in_area(location, areas[i]):
-                        num = str(i)
-                        cv2.putText(result, num, (100+i*50, 30), cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 255, 255), 2)
-                        event = i
-                        if event == 1:
-                            play_note('C')
-                        elif event == 2:
-                            play_note('D')
-                        elif event == 3:
-                            play_note('E')
-                        elif event == 4:
-                            play_note('F')
+    flag = False
+
+    for location in object_locations:
+        for i in range(len(areas)):
+            if is_object_in_area(location, areas[i]):
+                num = str(i)
+                cv2.putText(result, num, (100+i*50, 30), cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 255, 255), 2)
+                event = i
+                if event == 0:
+                    play_music(midi_filename[event])
+                    print('play ',midi_filename[event])
+                    flag = True
+                    break
+                elif event == 1:
+                    play_music(midi_filename[event])
+                    print('play ',midi_filename[event])
+                    flag = True
+                    break
+                elif event == 2:
+                    play_music(midi_filename[event])
+                    print('play ',midi_filename[event])
+                    flag = True
+                    break
+                elif event == 3:
+                    play_music(midi_filename[event])
+                    print('play ',midi_filename[event])
+                    flag = True
+                    break
+                elif event == 4:
+                    play_music(midi_filename[event])
+                    print('play ',midi_filename[event])
+                    flag = True
+                    break
+                
+      
+
+
+
+
             
             
     # 영역 표시 
