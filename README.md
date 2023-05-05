@@ -197,3 +197,9 @@ print(device_id)
    - 방법 :
       -  "if not is_object_in_any_area(location, areas) :
             event = -1"
+      -" def is_object_in_any_area(object_location, areas):
+    for area in areas:
+        if is_object_in_area(object_location, area):
+            return True
+    return False"
+    안됨 -> area[i]로 모든 영역 검사하는걸로 바꿔줌 -> 실패

@@ -11,11 +11,36 @@ def is_object_in_area(object_location, area):
     start_x, start_y, width, height = area
     return start_x <= x < start_x + width and start_y <= y < start_y + height
 
+
 def is_object_in_any_area(object_location, areas):
     for area in areas:
         if is_object_in_area(object_location, area):
             return True
     return False
+
+def is_object_not_in_areas(object_location, areas):    
+    for area in areas:
+        if is_object_in_area(object_location, area):
+            print("in")
+            return False
+   
+    x, y = object_location
+    start_x, start_y, width, height = area
+    return start_x >= x > start_x + width and start_y >= y > start_y + height
+
+def is_object_outside_area(object_location, firstarea,lastarea):
+    x, y = object_location
+    start_x, start_y, width, height= firstarea
+    last_x, last_y, width, height= lastarea
+    return x < start_x and x >= last_x + width and y < start_y and y >= last_y + height
+
+
+def is_all_objects_outside_areas(object_locations, areas):
+    for area in areas:
+        if is_object_in_any_area(object_locations, area):
+            return False
+    return True
+
 
 #midi filename생성 
 midi_filename = []
@@ -75,20 +100,31 @@ while True:
                 object_locations = fingertips
 
             for location in object_locations:
-                flag=False
+                flag=True
                 for i in range(len(areas)):
                     if is_object_in_area(location, areas[i]):
                         num = str(i)
                         cv2.putText(result, num, (100+i*50, 30), cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 255, 255), 2)
                         event = i
+                        flag = False
+                    if is_object_outside_area(location,areas[0],areas[len(areas)-1]) :
+                        print ("out")
+
+
+                # if is_object_in_any_area(location, areas) :
+                #     if event != -1 :
+                #         event = -1
+                #     else :
+                #         event = event
+                    #if is_object_not_in_areas(location, areas[i]) :
+                        #print("true")
                     
-                        print("-1")
 
                         
                 if event == prev_event:
                     flag = True
                     continue
-                if event == 0:
+                elif event == 0:
                     music_filename = midi_filename[event]
         #            print('play', music_filename)
                     print(event)
@@ -117,7 +153,6 @@ while True:
                     
                 prev_event = event
                 print("---")
-            
             
     # 영역 표시 
     cv2.rectangle(result, (80, 300),(180, 360),(0,0,255),2),  #도 
