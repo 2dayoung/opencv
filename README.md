@@ -193,3 +193,7 @@ print(device_id)
          flag = True
          continue "
          추가하고 if문들 위치 수정 (들여쓰기)
+4. 모든 손가락이 영역 벗어날때도 판별 하도록함 
+   - 방법 :
+      -  "if not is_object_in_any_area(location, areas) :
+            event = -1"
