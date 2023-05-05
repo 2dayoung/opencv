@@ -148,6 +148,9 @@
 3. draft에 파일 이름 리스트에 넣고 이벤트 발생하면 mid파일 실행하도록 수정
 4. 중복 되는것 막기위해 변수도 넣고 해봄 
 
+- v1.midi파일 만들어서 재생하는 (sleep문제있음)
+- v2.만들어진 midi파일 재생(소리가 안남?)->play_music()함수안에 continue로 바꾸면 해결됨 
+- v3.콜백 함수 써서 파란 원 영역들어오면 소리나도록 ( 다른영역가면 안남)
 
 **idea**
 1. callback 함수 쓰기 
@@ -160,4 +163,33 @@
 1. 반복재생되는게 문제 
 
 **고려할것**
-1. 손가락, 드럼 한번에 
+1. 손가락, 드럼 한번에 어떻게 할지 
+2. 인터페이스 어떻게 할지 
+3. 건반 추출하기 
+
+
+## 2023-05-05
+
+(
+device_id = pygame.midi.get_default_output_id()
+print(device_id)
+
+결과 : 0
+)
+1. play_mido : import mido, send(message) 이방법-> delay있음
+2. play_note : 안에 sleep함수있어서 delay
+   - while getbusy를 밖에다
+3. play_music : 소리는 나는데 무한 반복
+
+- wav사용하는 play는 동시 재생 가능한듯?
+
+**한것**
+1. 화음 만드는 파일 - make_harmony.py 
+2. draft -> 양손 동시인식이 안된다?
+   - for...위치 수정하니 해결됨..ㅎ
+3. 영역 벗어나기 전까지 반복 안하도록 함 
+   - 방법 : 
+      - "if event == prev_event:
+         flag = True
+         continue "
+         추가하고 if문들 위치 수정 (들여쓰기)
