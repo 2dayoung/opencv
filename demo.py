@@ -4,41 +4,137 @@ import simpleaudio as sa
 import pygame.midi
 import time
 import mido
-import pygame
+
 #=========================
 #원래 있던 midi 파일 실행   play_music()
 #=========================
 
+import pygame
+
+#midi filename생성 
 midi_filename = []
+notes = [60, 62, 64, 65, 67, 69, 71]
+for i, note in enumerate(notes):    
+    midi_filename.append(str(note) +'.mid')
+    
+# mixer config
+freq = 44100  # audio CD quality
+bitsize = -16   # unsigned 16 bit
+channels = 2  # 1 is mono, 2 is stereo
+buffer = 1024   # number of samples
+pygame.mixer.init(freq, bitsize, channels, buffer)
 
-do = sa.WaveObject.from_wave_file("sounds/1.wav")
-re = sa.WaveObject.from_wave_file("sounds/2.wav")
-mi = sa.WaveObject.from_wave_file("sounds/3.wav")
-fa = sa.WaveObject.from_wave_file("sounds/4.wav")
-sol = sa.WaveObject.from_wave_file("sounds/5.wav")
+# optional volume 0 to 1.0
+pygame.mixer.music.set_volume(0.4)
 
-#key filename생성 
-play_name = []
-key = [do,re,mi,fa,sol]
-for i, note in enumerate(key):    
-    play_name.append(str(key)+'.play()')
+def play_music(midi_filename):
+    pygame.mixer.music.load(midi_filename)
+    pygame.mixer.music.play()
+    
+
+print("play_music")
+play_music('60.mid')
+print("play_music end")
 
 
+''' 이거 쓰려면 이렇게 (안됨)
+    for i in range(len(areas)):
+            if is_object_in_area(location, areas[i]):
+                num = str(i)
+                cv2.putText(result, num, (100+i*50, 30), cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 255, 255), 2)
+                event = i
+                if event == 0:
+                    music_filename = midi_filename[event]
+                    break
+                elif event == 1:
+                    music_filename = midi_filename[event]
+                    break
+                elif event == 2:
+                    music_filename = midi_filename[event]
+                    break
+                elif event == 3:
+                    music_filename = midi_filename[event]
+                    break
+                elif event == 4:
+                    music_filename = midi_filename[event]
+                    break
+
+        if music_filename != "" and not music_playing:
+            play_music(music_filename)
+            print('play', music_filename)
+            music_playing = True
+        
+        if music_playing and not is_object_in_any_area(location, areas):
+            stop_music()
+            print('stop', music_filename)
+            music_playing = False
+            music_filename = ""'''
+#=====================
+
+#<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+#============================
+'''
+만들어서 재생  play_note()
+'''
+# Initialize Pygame and the MIDI module
 pygame.init()
 pygame.midi.init()
 
+# Get the ID of the first output device
+device_id = pygame.midi.get_default_output_id()
+print(device_id)
+
+# Open the MIDI output port
+output = pygame.midi.Output(device_id)
+
+# Define a dictionary that maps note names to MIDI note numbers
+notes = {'C': 60, 'D': 62, 'E': 64, 'F': 65, 'G': 67, 'A': 69}
 #=========================
 def sound(event,midi_filename):
-
-    play_name[event]
+        music_filename = midi_filename[event]
+        play_mido(music_filename)
+#       print('play', music_filename)
+        print(event)
+    
 #=========================
 
+#
 
+def play_note(note_name):
+    # Convert the note name to a MIDI note number
+    note_number = notes[note_name]
+    # Create a note on message and send it to the output port
+    note_on = [0x90, note_number, 127]
+    output.write_short(*note_on)
+    # Wait for a short time to simulate the duration of the note
+    time.sleep(1)
+    # Create a note off message and send it to the output port
+    note_off = [0x80, note_number, 0]
+    output.write_short(*note_off)
 
 def is_object_in_area(object_location, area):
     x, y = object_location
     start_x, start_y, width, height = area
     return start_x <= x < start_x + width and start_y <= y < start_y + height
+# 밑에 수정 이렇게 
+#============================================
+'''
+            for i in range(len(areas)):
+                for location in object_locations:
+                    if is_object_in_area(location, areas[i]):
+                        num = str(i)
+                        cv2.putText(result, num, (100+i*50, 30), cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 255, 255), 2)
+                        event = i
+                        if event == 1:
+                            play_note('C')
+                        elif event == 2:
+                            play_note('D')
+                        elif event == 3:
+                            play_note('E')
+                        elif event == 4:
+                            play_note('F')'''
+#============================================
+#>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 
 
 # Mediapipe Hand Landmark 모델 초기화
@@ -60,6 +156,15 @@ object_locations = [(2, 4), (5, 3), (1, 2), (4, 1), (3, 5), (5, 2), (2, 3), (1, 
 # 5개의 영역을 나타내는 리스트, 각각의 영역은 (시작 x 좌표, 시작 y 좌표, 가로 길이, 세로 길이) 형태로 저장
 areas = [(80, 300, 100, 60), (180, 300, 100, 60),(280, 300, 100, 60),(380, 300, 100, 60),(480, 300, 100, 60)]
 
+def stop_music():
+    pygame.mixer.music.stop()
+
+outport = mido.open_output()
+
+def play_mido(file) :
+    mid= mido.MidiFile(file)
+    for message in mid.play():
+        outport.send(message)
 
 prev_event = None
 music_playing = False
@@ -112,19 +217,14 @@ while True:
                     continue
                 elif event == 0:
                     sound(event,midi_filename)
-                    do.play()
                 elif event == 1:
                     sound(event,midi_filename)
-                    re.play()
                 elif event == 2:
                     sound(event,midi_filename)
-                    mi.play()
                 elif event == 3:
                     sound(event,midi_filename)
-                    fa.play()
                 elif event == 4:
-                    sound(event,midi_filename)   
-                    sol.play()              
+                    sound(event,midi_filename)                 
                 prev_event = event
                 print("---")
 
