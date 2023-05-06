@@ -194,17 +194,20 @@ while True:
                 cv2.circle(result, fingertip, 5, (255, 0, 0), -1)             
                 object_locations = fingertips
 
+            outflag = False
             for location in object_locations:
-                flag=False
+                flag = True
                 for i in range(len(areas)):
+                    
                     if is_object_in_area(location, areas[i]):
                         num = str(i)
                         cv2.putText(result, num, (100+i*50, 30), cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 255, 255), 2)
                         event = i
-
-                if not is_object_in_any_area(location, areas) :
-                    event = -1
-                    print(11)
+                        flag = False
+                if not flag :
+                        outflag =True
+                if not outflag:
+                    event=-1
                     
 
                         

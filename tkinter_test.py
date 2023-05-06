@@ -9,10 +9,7 @@ import simpleaudio as sa
 
 
 
-def is_object_in_area(object_location, area):
-    x, y = object_location
-    start_x, start_y, width, height = area
-    return start_x <= x < start_x + width and start_y <= y < start_y + height
+
 
 
 def is_object_in_any_area(object_location, areas):
@@ -35,14 +32,30 @@ def is_object_outside_area(object_location, firstarea,lastarea):
     x, y = object_location
     start_x, start_y, width, height= firstarea
     last_x, last_y, width, height= lastarea
-    return x < start_x and x >= last_x + width and y < start_y and y >= last_y + height
+    return x < start_x or x >= last_x + width or y < start_y or y >= last_y + height
 
+def is_object_in_area(object_location, area):
+    x, y = object_location
+    start_x, start_y, width, height = area
+    return start_x <= x < start_x + width and start_y <= y < start_y + height
 
-def is_all_objects_outside_areas(object_locations, areas):
+def is_any_objects_in_areas(object_locations, areas):
+    flag=True
     for area in areas:
-        if is_object_in_any_area(object_locations, area):
-            return False
-    return True
+        if is_object_in_area(object_locations, area):
+            flag= False
+    if flag:
+        return False
+    else :
+        return True
+    
+def is_all_objects_outside_areas(object_locations, areas):
+    if is_any_objects_in_areas(object_locations, areas):
+        print("is all object false")
+        return False
+    else :
+        return True
+
 
 def piano() :
 #midi filename생성 
@@ -61,7 +74,6 @@ def piano() :
     
     # 웹캠 초기화
     cap = cv2.VideoCapture(0)
-    cnt=0
     
     # 10개의 객체의 위치를 나타내는 리스트
     object_locations = [(2, 4), (5, 3), (1, 2), (4, 1), (3, 5), (5, 2), (2, 3), (1, 5), (3, 1), (4, 4)]
@@ -103,17 +115,23 @@ def piano() :
                 for fingertip in fingertips:              
                     cv2.circle(result, fingertip, 5, (255, 0, 0), -1)             
                     
-    
+                outflag = False
                 for location in object_locations:
                     flag = True
                     for i in range(len(areas)):
+                        
                         if is_object_in_area(location, areas[i]):
                             num = str(i)
                             cv2.putText(result, num, (100+i*50, 30), cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 255, 255), 2)
                             event = i
                             flag = False
-                        if is_object_outside_area(location,areas[0],areas[len(areas)-1]) :
-                            print ("out")
+                    if not flag :
+                            outflag =True
+                    if not outflag:
+                        print ("out")
+                        # if is_all_objects_outside_areas(location,areas) :
+                        #     print ("out")
+                            
     
     
                     # if is_object_in_any_area(location, areas) :
@@ -121,8 +139,8 @@ def piano() :
                     #         event = -1
                     #     else :
                     #         event = event
-                        #if is_object_not_in_areas(location, areas[i]) :
-                            #print("true")
+                    #     if is_object_not_in_areas(location, areas[i]) :
+                    #         print("true")
                         
     
                             
@@ -131,33 +149,33 @@ def piano() :
                         continue
                     elif event == 0:
                         music_filename = midi_filename[event]
-            #            print('play', music_filename)
-                        print(event)
+            #            #print('play', music_filename)
+                        #print(event)
                         
                     elif event == 1:
                         music_filename = midi_filename[event]
-                        print(event)
-            #            print('play', music_filename)
+                        #print(event)
+            #            #print('play', music_filename)
                         
     
                     elif event == 2:
                         music_filename = midi_filename[event]
-                        print(event)
-            #             print('play', music_filename)
+                        #print(event)
+            #             #print('play', music_filename)
                         
                     elif event == 3:
                         music_filename = midi_filename[event]
-                        print(event)
-            #            print('play', music_filename)
+                        #print(event)
+            #            #print('play', music_filename)
                         
                     elif event == 4:
                         music_filename = midi_filename[event]
-                        print(event)
-            #           print('play', music_filename)
+                        #print(event)
+            #           #print('play', music_filename)
     
                         
                     prev_event = event
-                    print("---")
+                    #print("---")
                 
         # 영역 표시 
         cv2.rectangle(result, (80, 300),(180, 360),(0,0,255),2),  #도 
@@ -178,18 +196,19 @@ def piano() :
     cap.release()
     cv2.destroyAllWindows()
 
+if __name__ == '__main__':
+    piano()
 
+# win = Tk() #창 생성
 
-win = Tk() #창 생성
+# win.geometry("1024x720") #창 크기변경
+# win.title("play") #창 이름
+# win.option_add("*Font","맑은고딕 25")
 
-win.geometry("1024x720") #창 크기변경
-win.title("play") #창 이름
-win.option_add("*Font","맑은고딕 25")
+# btn = Button(win,text="버튼")
+# btn.config(text = "시작")
+# btn.config(width = 10)
+# btn.config(command = piano)
 
-btn = Button(win,text="버튼")
-btn.config(text = "시작")
-btn.config(width = 10)
-btn.config(command = piano)
-
-btn.pack()
-win.mainloop() #창 실행
+# btn.pack()
+# win.mainloop() #창 실행
