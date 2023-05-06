@@ -186,20 +186,30 @@ print(device_id)
 **한것**
 1. 화음 만드는 파일 - make_harmony.py 
 2. draft -> 양손 동시인식이 안된다?
-   - for...위치 수정하니 해결됨..ㅎ
+   - for...위치 수정하니 해결됨
 3. 영역 벗어나기 전까지 반복 안하도록 함 
    - 방법 : 
-      - "if event == prev_event:
-         flag = True
-         continue "
+      >if event == prev_event:   
+         flag = True   
+         continue    
          추가하고 if문들 위치 수정 (들여쓰기)
 4. 모든 손가락이 영역 벗어날때도 판별 하도록함 
-   - 방법 :
-      -  "if not is_object_in_any_area(location, areas) :
-            event = -1"
-      -" def is_object_in_any_area(object_location, areas):
-    for area in areas:
-        if is_object_in_area(object_location, area):
-            return True
-    return False"
+   - 방법 :  
+      >  if not is_object_in_any_area(location, areas) :   
+      >           event = -1   
+      >  object_location, areas):
+   - > for area in areas:   
+      >if is_object_in_area(object_location, area):   
+      >   return True
+    >return False"
     안됨 -> area[i]로 모든 영역 검사하는걸로 바꿔줌 -> 실패
+
+## 2023-05-06
+**GUI**
+- Graphical User Interface
+- **tkinter**
+- exe파일 
+
+**할것**
+1. 소리나는 코드 넣기 
+2. gui 
