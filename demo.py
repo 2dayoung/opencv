@@ -95,7 +95,7 @@ def sound(event,midi_filename):
         play_mido(music_filename)
 #       print('play', music_filename)
         print(event)
-    
+print (midi_filename)
 #=========================
 
 #
@@ -154,8 +154,12 @@ cnt=0
 object_locations = [(2, 4), (5, 3), (1, 2), (4, 1), (3, 5), (5, 2), (2, 3), (1, 5), (3, 1), (4, 4)]
 
 # 5개의 영역을 나타내는 리스트, 각각의 영역은 (시작 x 좌표, 시작 y 좌표, 가로 길이, 세로 길이) 형태로 저장
-areas = [(80, 300, 100, 60), (180, 300, 100, 60),(280, 300, 100, 60),(380, 300, 100, 60),(480, 300, 100, 60)]
-
+#areas = [(80, 300, 100, 60), (180, 300, 100, 60),(280, 300, 100, 60),(380, 300, 100, 60),(480, 300, 100, 60)]
+areas = [[53, 384, 106, 432], [106, 384, 159, 432],
+          [159, 384, 212, 432], [212, 384, 265, 432], 
+          [265, 384, 318, 432], [318, 384, 371, 432],
+            [371, 384, 424, 432], [424, 384, 477, 432],
+              [477, 384, 530, 432], [530, 384, 583, 432]]
 def stop_music():
     pygame.mixer.music.stop()
 
@@ -204,7 +208,7 @@ while True:
                     
                     if is_object_in_area(location, areas[i]):
                         num = str(i)
-                        cv2.putText(result, num, (100+i*50, 30), cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 255, 255), 2)
+                        cv2.putText(result, num, (100+i*10, 30), cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 255, 255), 2)
                         event = i
                         flag = False
                 if not flag :
@@ -215,26 +219,31 @@ while True:
                 if event == prev_event:
                     flag = True
                     continue
-                elif event == 0:
+                elif event < 5 and event!= -1:
                     sound(event,midi_filename)
-                elif event == 1:
-                    sound(event,midi_filename)
-                elif event == 2:
-                    sound(event,midi_filename)
-                elif event == 3:
-                    sound(event,midi_filename)
-                elif event == 4:
-                    sound(event,midi_filename)                 
+                elif event != -1:
+                    sound(event-5,midi_filename)
+                # elif event == 1:
+                #     sound(event,midi_filename)
+                # elif event == 2:
+                #     sound(event,midi_filename)
+                # elif event == 3:
+                #     sound(event,midi_filename)
+                # elif event == 4:
+                #     sound(event,midi_filename)                 
                 prev_event = event
                 print("---")
 
            
     # 영역 표시 
-    cv2.rectangle(result, (80, 300),(180, 360),(0,0,255),2),  #도 
-    cv2.rectangle(result,(180, 300),(280, 360),(54,148,255),2)  #레
-    cv2.rectangle(result,(280, 300),(380, 360),(0,228,255),2)  #미
-    cv2.rectangle(result,(380, 300),(480, 360),(22,219,29),2)  #파
-    cv2.rectangle(result,(480, 300),(580, 360),(22,2,29),2)  #파
+    # cv2.rectangle(result, (80, 300),(180, 360),(0,0,255),2),  #도 
+    # cv2.rectangle(result,(180, 300),(280, 360),(54,148,255),2)  #레
+    # cv2.rectangle(result,(280, 300),(380, 360),(0,228,255),2)  #미
+    # cv2.rectangle(result,(380, 300),(480, 360),(22,219,29),2)  #파
+    # cv2.rectangle(result,(480, 300),(580, 360),(22,2,29),2)  #파
+
+    for area in areas:
+        cv2.rectangle(result, (area[0], area[1]),(area[2], area[3]), (0, 255, 0), 2)
 
 
     # 결과 보여주기
