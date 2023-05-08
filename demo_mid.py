@@ -205,15 +205,11 @@ def drum() :
         drum_sound1 = sa.WaveObject.from_wave_file('kick.wav')
         drum_sound2 = sa.WaveObject.from_wave_file('snare.wav')
         drum_sound3 = sa.WaveObject.from_wave_file('hihat.wav')
-
-        do = sa.WaveObject.from_wave_file("sounds/1.wav")
-        re = sa.WaveObject.from_wave_file("sounds/2.wav")
-        mi = sa.WaveObject.from_wave_file("sounds/3.wav")
-
+        
         # 직사각형 영역 정보
-        rectangles = [[(80, 250), (180, 400)],  # 좌상단, 우하단 좌표
-                        [(280, 250), (380, 400)],
-                        [(480, 250), (580, 400)]]
+        rectangle1 = [(80, 250), (180, 400)]  # 좌상단, 우하단 좌표
+        rectangle2 = [(280, 250), (380, 400)]
+        rectangle3 = [(480, 250), (580, 400)]
 
         event = None
         prev_event = 0
@@ -229,11 +225,10 @@ def drum() :
             hsv = cv2.cvtColor(frame, cv2.COLOR_BGR2HSV)
 
             # 직사각형 그리기
-            for i, r in enumerate(rectangles):
-                cv2.rectangle(frame, r[0], r[1], [(0, 0, 255), (0, 255, 0), (255, 0, 0)][i], 2)
-
-
-            lower_blue = (100, 30, 30)
+            cv2.rectangle(frame, rectangle1[0], rectangle1[1], (0, 0, 255), 2)
+            cv2.rectangle(frame, rectangle2[0], rectangle2[1], (0, 255, 0), 2)
+            cv2.rectangle(frame, rectangle3[0], rectangle3[1], (255, 0, 0), 2)
+            lower_blue = (100, 30, 50)
             upper_blue = (130, 255, 255)
             # HSV 이미지에서 색상 범위에 해당하는 영역을 이진화합니다.
             mask = cv2.inRange(hsv, lower_blue, upper_blue)
@@ -257,41 +252,43 @@ def drum() :
                 cx= x + w//2
                 cy= y + h//2
                 #원 중심 좌표를 사용하여 소리 재생
-                if rectangles[0][0][0] < cx < rectangles[0][1][0] and rectangles[0][0][1] < cy < rectangles[0][1][1]:
-                    event = 0
-                elif rectangles[1][0][0] < cx < rectangles[1][1][0] and rectangles[1][0][1] < cy < rectangles[1][1][1]:
+                if 80< cx < 180 and 250< cy <400 :
                     event = 1
-                elif rectangles[2][0][0] < cx < rectangles[2][1][0] and rectangles[2][0][1] < cy < rectangles[2][1][1]:
+                elif 280< cx < 380 and 250 < cy <400 :
                     event = 2
+                elif 480 < cx < 580 and 250 < cy < 400 :
+                    event = 3
                 else :
-                    event = -1
-
+                    event=-1
+                             
                 #원 그리기
-                if event == prev_event:
-                    pass                  
-                elif event == 0:
-                    drum_sound1.play()
-                    print("play ",event)
-                elif event == 1:
-                    drum_sound2.play()
-                    print("play ",event)
-                elif event == 2:
-                    drum_sound3.play()
-                    print("play ",event)
+            if event == prev_event:
+                pass                  
+            elif event == 1:
+                drum_sound1.play()
                 
-                cv2.rectangle(frame, (cx-w//2, cy-h//2), (cx+w//2, y+h//2), (0, 0, 255), 2)   
-                prev_event = event
+                print("play ",event)
+            elif event == 2:
+                drum_sound2.play()
+                print("play ",event)
+            elif event == 3:
+                drum_sound3.play()
+                print("play ",event)
+            
+            cv2.rectangle(frame, (cx-w//2, cy-h//2), (cx+w//2, cy+h//2), (0, 0, 255), 2)   
+            prev_event = event
 
-                #결과 출력
-                cv2.imshow('Drum Detection', frame)
+            #결과 출력
+            cv2.imshow('Drum Detection', frame)
 
-                #'q' 키를 누르면 종료
-                if cv2.waitKey(1) & 0xFF == ord('q'):
-                    break
+            #'q' 키를 누르면 종료
+            if cv2.waitKey(1) & 0xFF == ord('q'):
+                break
 
         #웹캠 해제 및 창 닫기
         cap.release()
         cv2.destroyAllWindows()
+
 
 
 
@@ -309,8 +306,8 @@ def start():
     root.geometry("{}x{}+{}+{}".format(window_width, window_height, x_cordinate, y_cordinate))
 
     # 라벨 추가
-    label = Label(root, text="연주할 악기를 선택하세요", font=("맑은고딕", 18))
-    label.configure(font=("한컴고딕", 20))
+    label = Label(root, text="연주할 악기를 선택하세요", font=("함초롬돋음", 18))
+    label.configure(font=("휴먼엑스포", 20))
     label.place(relx=0.5, rely=0.55, anchor="center")
     title = Label(root, text="Motion Play")
     title.configure(font=("Perpetua Titling MT", 50))
@@ -318,13 +315,13 @@ def start():
 
     # 버튼 추가
     piano_button = Button(root, text="피아노",command= piano)
-    piano_button.configure(font=("맑은고딕", 20))
+    piano_button.configure(font=("휴먼엑스포", 20))
     piano_button.place(relx=0.3, rely=0.7, anchor="center")
     piano_button.config(width=8, height=2)
    
 
     drum_button = Button(root, text="드럼",command= drum)
-    drum_button.configure(font=("맑은고딕", 20))
+    drum_button.configure(font=("휴먼엑스포", 20))
     drum_button.place(relx=0.7, rely=0.7, anchor="center")
     drum_button.config(width=8, height=2)
     drum_button.config()
