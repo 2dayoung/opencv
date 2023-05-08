@@ -5,14 +5,10 @@ import pygame.midi
 import time
 import numpy as np
 import simpleaudio as sa
+from tkinter import *
 
-print("연주할 악기를 선택하세요")
-print("1. 피아노 \n2.드럼\n3. 나가기")
 
-while True:
-    menu = input("연주할 악기를 선택해주세요 : ")
-
-    if menu=='1':
+def piano() : 
 
         # Initialize Pygame and the MIDI module
         pygame.init()
@@ -195,7 +191,7 @@ while True:
         pygame.midi.quit()
     
 
-    elif menu == '2':
+def drum() : 
 
         def play_drum(sound_file):
             wave_obj = sa.WaveObject.from_wave_file(sound_file)
@@ -206,63 +202,134 @@ while True:
         cap = cv2.VideoCapture(0)
 
         # 드럼 소리를 재생할 오디오 파일 경로
-        drum_sound1 = 'kick.wav'
-        drum_sound2 = 'snare.wav'
-        drum_sound3 = 'hihat.wav'
+        drum_sound1 = sa.WaveObject.from_wave_file('kick.wav')
+        drum_sound2 = sa.WaveObject.from_wave_file('snare.wav')
+        drum_sound3 = sa.WaveObject.from_wave_file('hihat.wav')
+
+        do = sa.WaveObject.from_wave_file("sounds/1.wav")
+        re = sa.WaveObject.from_wave_file("sounds/2.wav")
+        mi = sa.WaveObject.from_wave_file("sounds/3.wav")
 
         # 직사각형 영역 정보
-        rectangle1 = [(80, 250), (180, 400)]  # 좌상단, 우하단 좌표
-        rectangle2 = [(280, 250), (380, 400)]
-        rectangle3 = [(480, 250), (580, 400)]
+        rectangles = [[(80, 250), (180, 400)],  # 좌상단, 우하단 좌표
+                        [(280, 250), (380, 400)],
+                        [(480, 250), (580, 400)]]
 
+        event = None
+        prev_event = 0
         while True:
-            # 웹캠에서 프레임 읽기
+            # 웹캠에서 프레임 읽기& 좌우반전 &크기
             ret, frame = cap.read()
+            frame= cv2.flip(frame,1)
 
-            # 프레임을 RGB로 변환
-            image = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
-
-            #원 감지
-            gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
-            circles = cv2.HoughCircles(gray, cv2.HOUGH_GRADIENT, dp=1, minDist=100, param1=50, param2=30, minRadius=10, maxRadius=100)
+            # 이미지 크기 조정
+            frame = cv2.resize(frame, (640, 480))
+            
+            # 이미지를 BGR에서 HSV로 변환
+            hsv = cv2.cvtColor(frame, cv2.COLOR_BGR2HSV)
 
             # 직사각형 그리기
-            cv2.rectangle(frame, rectangle1[0], rectangle1[1], (0, 0, 255), 2)
-            cv2.rectangle(frame, rectangle2[0], rectangle2[1], (0, 255, 0), 2)
-            cv2.rectangle(frame, rectangle3[0], rectangle3[1], (255, 0, 0), 2)
+            for i, r in enumerate(rectangles):
+                cv2.rectangle(frame, r[0], r[1], [(0, 0, 255), (0, 255, 0), (255, 0, 0)][i], 2)
 
-            #원이 감지되면 소리 재생
-            if circles is not None:
-                circles = np.uint16(np.around(circles))
-                for circle in circles[0]:
-                    cx, cy = circle[0], circle[1]
 
-                    #원 중심 좌표를 사용하여 소리 재생
-                    if 80< cx < 180 and 250< cy <400:
-                        play_drum(drum_sound1)
-                    elif 280< cx < 380 and 250 < cy <400:
-                        play_drum(drum_sound2)
-                    elif 480 < cx < 580 and 250 < cy < 400:
-                        play_drum(drum_sound3)
+            lower_blue = (100, 30, 30)
+            upper_blue = (130, 255, 255)
+            # HSV 이미지에서 색상 범위에 해당하는 영역을 이진화합니다.
+            mask = cv2.inRange(hsv, lower_blue, upper_blue)
+            cv2.imshow("mask",mask)
+            # 잡음 제거를 위한 모폴로지 연산
+            kernel = np.ones((5,5),np.uint8)
+            opening = cv2.morphologyEx(mask, cv2.MORPH_OPEN, kernel)
+            closing = cv2.morphologyEx(opening, cv2.MORPH_CLOSE, kernel)
 
-                    #원 그리기
-                    cv2.circle(frame, (cx, cy), circle[2], (0, 255, 0), 2)
 
-            #결과 출력
-            cv2.imshow('Drume Detection', frame)
+            # 객체 검출
+            contours, _ = cv2.findContours(closing, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
 
-            #'q' 키를 누르면 종료
-            if cv2.waitKey(1) & 0xFF == ord('q'):
-                break
+            # 두 개의 가장 큰 객체만 추출
+            contours = sorted(contours, key=cv2.contourArea, reverse=True)[:2]
+            
+            
+            # 객체 위치 추출
+            for c in contours:
+                x, y, w, h = cv2.boundingRect(c)
+                cx= x + w//2
+                cy= y + h//2
+                #원 중심 좌표를 사용하여 소리 재생
+                if rectangles[0][0][0] < cx < rectangles[0][1][0] and rectangles[0][0][1] < cy < rectangles[0][1][1]:
+                    event = 0
+                elif rectangles[1][0][0] < cx < rectangles[1][1][0] and rectangles[1][0][1] < cy < rectangles[1][1][1]:
+                    event = 1
+                elif rectangles[2][0][0] < cx < rectangles[2][1][0] and rectangles[2][0][1] < cy < rectangles[2][1][1]:
+                    event = 2
+                else :
+                    event = -1
+
+                #원 그리기
+                if event == prev_event:
+                    pass                  
+                elif event == 0:
+                    drum_sound1.play()
+                    print("play ",event)
+                elif event == 1:
+                    drum_sound2.play()
+                    print("play ",event)
+                elif event == 2:
+                    drum_sound3.play()
+                    print("play ",event)
+                
+                cv2.rectangle(frame, (cx-w//2, cy-h//2), (cx+w//2, y+h//2), (0, 0, 255), 2)   
+                prev_event = event
+
+                #결과 출력
+                cv2.imshow('Drum Detection', frame)
+
+                #'q' 키를 누르면 종료
+                if cv2.waitKey(1) & 0xFF == ord('q'):
+                    break
 
         #웹캠 해제 및 창 닫기
         cap.release()
         cv2.destroyAllWindows()
 
 
-    if menu=='3':
-        break
-        
-    else:
-        print("메뉴를 다시 선택해 주세요.")
-        continue
+
+def start():
+    root = Tk()
+    root.title("Motion Play")
+
+    # 윈도우 크기 설정
+    window_width = 720
+    window_height = 480
+    screen_width = root.winfo_screenwidth()
+    screen_height = root.winfo_screenheight()
+    x_cordinate = int((screen_width/2) - (window_width/2))
+    y_cordinate = int((screen_height/2) - (window_height/2))
+    root.geometry("{}x{}+{}+{}".format(window_width, window_height, x_cordinate, y_cordinate))
+
+    # 라벨 추가
+    label = Label(root, text="연주할 악기를 선택하세요", font=("맑은고딕", 18))
+    label.configure(font=("한컴고딕", 20))
+    label.place(relx=0.5, rely=0.55, anchor="center")
+    title = Label(root, text="Motion Play")
+    title.configure(font=("Perpetua Titling MT", 50))
+    title.place(relx=0.5, rely=0.3, anchor="center")
+
+    # 버튼 추가
+    piano_button = Button(root, text="피아노",command= piano)
+    piano_button.configure(font=("맑은고딕", 20))
+    piano_button.place(relx=0.3, rely=0.7, anchor="center")
+    piano_button.config(width=8, height=2)
+   
+
+    drum_button = Button(root, text="드럼",command= drum)
+    drum_button.configure(font=("맑은고딕", 20))
+    drum_button.place(relx=0.7, rely=0.7, anchor="center")
+    drum_button.config(width=8, height=2)
+    drum_button.config()
+
+    root.mainloop()
+
+if __name__ == '__main__':
+    start()
