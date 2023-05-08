@@ -30,11 +30,9 @@ pygame.mixer.music.set_volume(0.4)
 def play_music(midi_filename):
     pygame.mixer.music.load(midi_filename)
     pygame.mixer.music.play()
-    
 
-print("play_music")
-play_music('60.mid')
-print("play_music end")
+outport = mido.open_output()
+
 
 
 ''' 이거 쓰려면 이렇게 (안됨)
@@ -162,8 +160,6 @@ areas = [[53, 384, 106, 432], [106, 384, 159, 432],
               [477, 384, 530, 432], [530, 384, 583, 432]]
 def stop_music():
     pygame.mixer.music.stop()
-
-outport = mido.open_output()
 
 def play_mido(file) :
     mid= mido.MidiFile(file)
