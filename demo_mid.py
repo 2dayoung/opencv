@@ -63,7 +63,7 @@ def piano_with_key() :
                                min_tracking_confidence=0.7)
 
         # 웹캠 초기화
-        cap = cv2.VideoCapture(0)
+        cap = cv2.VideoCapture(1)
         cnt=0
 
 
@@ -189,7 +189,8 @@ def piano():
     notes = [60, 62, 64, 65, 67, 69, 71]
     for i, note in enumerate(notes):    
         midi_filename.append(str(note) +'.mid')
-        
+
+    outport = mido.open_output()    
     # mixer config
     freq = 44100  # audio CD quality
     bitsize = -16   # unsigned 16 bit
@@ -204,7 +205,7 @@ def piano():
         pygame.mixer.music.load(midi_filename)
         pygame.mixer.music.play()
 
-    outport = mido.open_output()
+   
     
 
     #=====================
@@ -224,7 +225,7 @@ def piano():
 
     # Open the MIDI output port
     output = pygame.midi.Output(device_id)
-    outport = mido.open_output()
+    #outport = mido.open_output()
     # Define a dictionary that maps note names to MIDI note numbers
     notes = {'C': 60, 'D': 62, 'E': 64, 'F': 65, 'G': 67, 'A': 69}
     #=========================
@@ -288,7 +289,7 @@ def piano():
 
 
     # 웹캠 초기화
-    cap = cv2.VideoCapture(0)
+    cap = cv2.VideoCapture(1)
 
 
     # 10개의 객체의 위치를 나타내는 리스트
@@ -386,7 +387,7 @@ def drum() :
             play_obj.wait_done()
 
         # 웹캠 초기화
-        cap = cv2.VideoCapture(0)
+        cap = cv2.VideoCapture(1)
 
         # 드럼 소리를 재생할 오디오 파일 경로
         drum_sound1 = sa.WaveObject.from_wave_file('kick.wav')
@@ -415,8 +416,8 @@ def drum() :
             cv2.rectangle(frame, rectangle1[0], rectangle1[1], (0, 0, 255), 2)
             cv2.rectangle(frame, rectangle2[0], rectangle2[1], (0, 255, 0), 2)
             cv2.rectangle(frame, rectangle3[0], rectangle3[1], (255, 0, 0), 2)
-            lower_blue = (100, 30, 50)
-            upper_blue = (130, 255, 255)
+            lower_blue = (70, 49, 50)
+            upper_blue = (120, 255, 255)
             # HSV 이미지에서 색상 범위에 해당하는 영역을 이진화합니다.
             mask = cv2.inRange(hsv, lower_blue, upper_blue)
             cv2.imshow("mask",mask)
@@ -424,7 +425,8 @@ def drum() :
             kernel = np.ones((5,5),np.uint8)
             opening = cv2.morphologyEx(mask, cv2.MORPH_OPEN, kernel)
             closing = cv2.morphologyEx(opening, cv2.MORPH_CLOSE, kernel)
-
+            opening = cv2.morphologyEx(closing, cv2.MORPH_OPEN, kernel)
+            closing = cv2.morphologyEx(opening, cv2.MORPH_CLOSE, kernel)
 
             # 객체 검출
             contours, _ = cv2.findContours(closing, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
