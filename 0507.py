@@ -83,71 +83,22 @@ while True:
                         cnt =+ 1
             print ( arr_event)
             if cnt == 0 :
-                #print("out")
                 arr_event = [-1]
             else :
                 cnt = 0
-                
-            if arr_event != arr_prev_event :
-                print(arr_event) 
-                arr_prev_event = arr_event               
-                arr_event = []
-                
-                # for event in arr_event : 
-            
-            
 
+            
             if event == prev_event:
                 flag = True
                 
-            elif event != -1 and not flag and event != prev_event:                   
-                #print(event)
+            elif arr_event != [-1] and not flag and event != prev_event:                   
+
                 pass
+            arr_event = []
+            arr_prev_event = arr_event  
         else :      
             print("2 hands")
-            '''for handLms in results.multi_hand_landmarks:
-                # 각 손가락 끝의 랜드마크 좌표 추출
-                fingertips = []
-                for finger_tip_id in [4, 8, 12, 16, 20]:
-                    lm = handLms.landmark[finger_tip_id]
-                    h, w, c = result.shape   #좌표가 0~1값임.화면상의 픽셀 좌표로 변환하기 위해 이미지의 크기필요 C는 채널
-                    cx, cy = int(lm.x *w), int(lm.y*h)
-                    fingertips.append((cx,cy))
-                #print('fingertips = ',fingertips)
-                # 손가락 끝에 원 그리기
-                for location in  fingertips:              
-                    cv2.circle(result, location, 5, (255, 0, 0), -1)  
-                    #print('location = ',location)           
-                    for i in range(len(areas)):                   
-                        if is_object_in_area(location, areas[i]):
-                            num = str(i)
-                            cv2.putText(result, num, (100+i*50, 30), cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 255, 255), 2)
-                            event = i
-                            arr_event.append(event)
-                            #print(event)
-                            cnt =+ 1
-                print ( arr_event)
-                if cnt == 0 :
-                    #print("out")
-                    arr_event = [-1]
-                else :
-                    cnt = 0
-                    
-                if arr_event != arr_prev_event :
-                    #print(arr_event) 
-                    arr_prev_event = arr_event               
-                    arr_event = []
-                    
-                # for event in arr_event : 
-                
-                
-
-                if event == prev_event:
-                    flag = True
-                    
-                elif event != -1 and not flag and event != prev_event:                   
-                    #print(event)
-                    pass'''
+           
 
            
     # 영역 표시 
