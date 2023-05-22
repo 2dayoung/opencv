@@ -113,7 +113,7 @@ hands = mp_hands.Hands(static_image_mode=False,
 
 
 # 웹캠 초기화
-cap = cv2.VideoCapture(1)
+cap = cv2.VideoCapture(0)
 
 
 # 10개의 객체의 위치를 나타내는 리스트
@@ -129,10 +129,19 @@ areas = [[53, 384, 106, 432], [106, 384, 159, 432],
 
 
 
-
 prev_event = None
+arr_prev_event = None
+prev_event2 = None
+arr_prev_event2 = None
+prev_event1 = None
+arr_prev_event1 = None
+music_playing = False
 flag = False
 event = 0
+arr_event = []
+arr_event1 = []
+arr_event2 = []
+cnt = 0
 while True:
     # 웹캠에서 프레임 읽기& 좌우반전 &크기
     ret, frame = cap.read()
@@ -146,8 +155,10 @@ while True:
     results = hands.process(image)
 
     if results.multi_hand_landmarks:
-        for handLms in results.multi_hand_landmarks:
-            # 각 손가락 끝의 랜드마크 좌표 추출
+        if len(results.multi_hand_landmarks) == 1:  # 손이 한손만 있을 때
+            handLms = results.multi_hand_landmarks[0]
+            
+        # 각 손가락 끝의 랜드마크 좌표 추출
             fingertips = []
             for finger_tip_id in [4, 8, 12, 16, 20]:
                 lm = handLms.landmark[finger_tip_id]
@@ -155,36 +166,105 @@ while True:
                 cx, cy = int(lm.x *w), int(lm.y*h)
                 fingertips.append((cx,cy))
 
+            #print('fingertips = ',fingertips)
             # 손가락 끝에 원 그리기
-            for fingertip in  fingertips:              
-                cv2.circle(result, fingertip, 5, (255, 0, 0), -1)             
-                object_locations = fingertips
-
-            outflag = False
-            for location in object_locations:
-                flag = True
-                for i in range(len(areas)):
-                    
+            outflag = False  
+            for location in  fingertips:              
+                cv2.circle(result, location, 5, (255, 0, 0), -1)  
+                #print('location = ',location)
+                        
+                for i in range(len(areas)):                   
                     if is_object_in_area(location, areas[i]):
-                        num = str(i)
-                        # cv2.putText(result, num, (100+i*10, 30), cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 255, 255), 2)
+                        # num = str(i)
+                        # cv2.putText(result, num, (100+i*50, 30), cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 255, 255), 2)
                         event = i
-                        flag = False
-                if not flag :
-                        outflag =True
-                if not outflag:
-                    event=-1
-                                    
-                if event == prev_event:
-                    flag = True
-                    continue
-                elif event < 5 and event!= -1:
-                    sound(event,midi_filename)
-                elif event != -1:
-                    sound(event-5,midi_filename)               
-                prev_event = event
-                print("---")
+                        arr_event.append(event)
+                        cnt =+ 1
+            #print ( arr_event)
+            if cnt != 0 :
+                #arr_event = [-1]
+                outflag = True
+            if not outflag :
+                arr_event = [-1]
+                
+        
+            # if arr_prev_event == arr_event:
+            #     flag = True
+            #     cnt = 0
+            #     continue
+            if arr_event != [-1] and not flag and arr_prev_event != arr_event:
+                print ( arr_event)
+                pass
+            #print ( arr_event)
+            arr_prev_event = arr_event 
+            arr_event = [] 
+            #print ( "prev",arr_prev_event)
+        else :      
+            handLms1 = results.multi_hand_landmarks[0]  # 왼손
+            handLms2 = results.multi_hand_landmarks[1]  # 오른손
 
+            # 각 손가락 끝의 랜드마크 좌표 추출 (왼손)
+            fingertips1 = []
+            for finger_tip_id in [4, 8, 12, 16, 20]:
+                lm = handLms1.landmark[finger_tip_id]
+                h, w, c = result.shape
+                cx, cy = int(lm.x * w), int(lm.y * h)
+                fingertips1.append((cx, cy))
+            
+            # 각 손가락 끝의 랜드마크 좌표 추출 (오른손)
+            fingertips2 = []
+            for finger_tip_id in [4, 8, 12, 16, 20]:
+                lm = handLms2.landmark[finger_tip_id]
+                h, w, c = result.shape
+                cx, cy = int(lm.x * w), int(lm.y * h)
+                fingertips2.append((cx, cy))
+            
+            outflag1 = False  
+            for location in  fingertips1:              
+                cv2.circle(result, location, 5, (255, 0, 0), -1)  
+
+                for i in range(len(areas)):                   
+                    if is_object_in_area(location, areas[i]):
+                        event = i
+                        arr_event1.append(event)
+                        cnt =+ 1
+            #print ( arr_event)
+            if cnt != 0 :
+                outflag1 = True
+            if not outflag1 :
+                arr_event1 = [-1]
+                
+            if arr_event1 != [-1] and not flag and arr_prev_event1 != arr_event1:
+                print ("Arr 1 ", arr_event1)
+                pass
+            #print ( arr_event)
+            arr_prev_event1 = arr_event1 
+            arr_event1 = [] 
+            #print ( "prev",arr_prev_event)
+
+            #오른손
+            outflag2 = False  
+            for location in  fingertips2:              
+                cv2.circle(result, location, 5, (255, 0, 0), -1)  
+
+                for i in range(len(areas)):                   
+                    if is_object_in_area(location, areas[i]):
+                        event = i
+                        arr_event2.append(event)
+                        cnt =+ 1
+            #print ( arr_event)
+            if cnt != 0 :
+                outflag2 = True
+            if not outflag2 :
+                arr_event2 = [-1]
+                
+            if arr_event2 != [-1] and not flag and arr_prev_event2 != arr_event2:
+                print ( "arr 2 ",arr_event2)
+                pass
+            #print ( arr_event)
+            arr_prev_event2 = arr_event2
+            arr_event2 = [] 
+            #print ( "prev",arr_prev_event)
     for area in areas:
         cv2.rectangle(result, (area[0], area[1]),(area[2], area[3]), (0, 255, 0), 2)
 
