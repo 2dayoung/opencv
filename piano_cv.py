@@ -121,12 +121,11 @@ object_locations = [(2, 4), (5, 3), (1, 2), (4, 1), (3, 5), (5, 2), (2, 3), (1, 
 
 # 5개의 영역을 나타내는 리스트, 각각의 영역은 (시작 x 좌표, 시작 y 좌표, 가로 길이, 세로 길이) 형태로 저장
 #areas = [(80, 300, 100, 60), (180, 300, 100, 60),(280, 300, 100, 60),(380, 300, 100, 60),(480, 300, 100, 60)]
-areas = [[53, 384, 106, 432], [106, 384, 159, 432],
-        [159, 384, 212, 432], [212, 384, 265, 432], 
-        [265, 384, 318, 432], [318, 384, 371, 432],
-            [371, 384, 424, 432], [424, 384, 477, 432],
-            [477, 384, 530, 432], [530, 384, 583, 432]]
-
+#영역은 [x,y,w,h] 여야함.
+areas = [[53, 384, 53, 48], [106, 384, 53, 48], [159, 384, 53, 48],
+ [212, 384, 53, 48], [265, 384, 53, 48], [318, 384, 53, 48],
+ [371, 384, 53, 48], [424, 384, 53, 48], [477, 384, 53, 48],
+ [530, 384, 53, 48]]
 
 
 prev_event = None
@@ -172,7 +171,7 @@ while True:
             for location in  fingertips:              
                 cv2.circle(result, location, 5, (255, 0, 0), -1)  
                 #print('location = ',location)
-                        
+                            
                 for i in range(len(areas)):                   
                     if is_object_in_area(location, areas[i]):
                         # num = str(i)
@@ -187,7 +186,7 @@ while True:
             if not outflag :
                 arr_event = [-1]
                 
-        
+            
             # if arr_prev_event == arr_event:
             #     flag = True
             #     cnt = 0
@@ -203,7 +202,7 @@ while True:
             handLms1 = results.multi_hand_landmarks[0]  # 왼손
             handLms2 = results.multi_hand_landmarks[1]  # 오른손
 
-            # 각 손가락 끝의 랜드마크 좌표 추출 (왼손)
+                # 각 손가락 끝의 랜드마크 좌표 추출 (왼손)
             fingertips1 = []
             for finger_tip_id in [4, 8, 12, 16, 20]:
                 lm = handLms1.landmark[finger_tip_id]
@@ -265,8 +264,11 @@ while True:
             arr_prev_event2 = arr_event2
             arr_event2 = [] 
             #print ( "prev",arr_prev_event)
+
+    #영역에 사각형으로 표시 
     for area in areas:
-        cv2.rectangle(result, (area[0], area[1]),(area[2], area[3]), (0, 255, 0), 2)
+        cv2.rectangle(result, (area[0], area[1]),(area[0]+area[2],area[1]+area[3]), (0, 255, 0), 2)
+
 
 
     # 결과 보여주기
