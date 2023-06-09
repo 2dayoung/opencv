@@ -23,12 +23,11 @@ buffer = 1024   # number of samples
 pygame.mixer.init(freq, bitsize, channels, buffer)
 
 # optional volume 0 to 1.0
-pygame.mixer.music.set_volume(0.4)
+pygame.mixer.music.set_volume(1.0)
 
 def play_music(midi_filename):
     pygame.mixer.music.load(midi_filename)
     pygame.mixer.music.play()
-
 
 
 
@@ -48,7 +47,7 @@ device_id = pygame.midi.get_default_output_id()
 print(device_id)
 
 # Open the MIDI output port
-output = pygame.midi.Output(device_id)
+output = pygame.midi.Output(0)
 #outport = mido.open_output()
 # Define a dictionary that maps note names to MIDI note numbers
 notes = {'C': 60, 'D': 62, 'E': 64, 'F': 65, 'G': 67, 'A': 69}
@@ -56,7 +55,7 @@ notes = {'C': 60, 'D': 62, 'E': 64, 'F': 65, 'G': 67, 'A': 69}
 def sound(event,midi_filename):
         music_filename = midi_filename[event]
         play_mido(music_filename)
-        print(event)
+        
 print (midi_filename)
 #=========================
 
@@ -127,7 +126,6 @@ areas = [[53, 384, 53, 48], [106, 384, 53, 48], [159, 384, 53, 48],
  [371, 384, 53, 48], [424, 384, 53, 48], [477, 384, 53, 48],
  [530, 384, 53, 48]]
 
-
 prev_event = None
 arr_prev_event = None
 prev_event2 = None
@@ -165,7 +163,6 @@ while True:
                 cx, cy = int(lm.x *w), int(lm.y*h)
                 fingertips.append((cx,cy))
 
-            #print('fingertips = ',fingertips)
             # 손가락 끝에 원 그리기
             outflag = False  
             for location in  fingertips:              
@@ -174,35 +171,26 @@ while True:
                             
                 for i in range(len(areas)):                   
                     if is_object_in_area(location, areas[i]):
-                        # num = str(i)
-                        # cv2.putText(result, num, (100+i*50, 30), cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 255, 255), 2)
                         event = i
                         arr_event.append(event)
                         cnt =+ 1
-            #print ( arr_event)
-            if cnt != 0 :
-                #arr_event = [-1]
-                outflag = True
-            if not outflag :
-                arr_event = [-1]
-                
-            
-            # if arr_prev_event == arr_event:
-            #     flag = True
-            #     cnt = 0
-            #     continue
-            if arr_event != [-1] and not flag and arr_prev_event != arr_event:
-                print ( arr_event)
+
+            if not flag and arr_prev_event != arr_event:
+                if arr_event != [] :
+                    event=arr_event[0]
+                    sound(event,midi_filename)
+                print (arr_event)
                 pass
-            #print ( arr_event)
+
             arr_prev_event = arr_event 
             arr_event = [] 
-            #print ( "prev",arr_prev_event)
+
+        # 양손다 들어왔을때    
         else :      
             handLms1 = results.multi_hand_landmarks[0]  # 왼손
             handLms2 = results.multi_hand_landmarks[1]  # 오른손
 
-                # 각 손가락 끝의 랜드마크 좌표 추출 (왼손)
+        # 각 손가락 끝의 랜드마크 좌표 추출 (왼손)
             fingertips1 = []
             for finger_tip_id in [4, 8, 12, 16, 20]:
                 lm = handLms1.landmark[finger_tip_id]
@@ -210,31 +198,30 @@ while True:
                 cx, cy = int(lm.x * w), int(lm.y * h)
                 fingertips1.append((cx, cy))
             
-            # 각 손가락 끝의 랜드마크 좌표 추출 (오른손)
+        # 각 손가락 끝의 랜드마크 좌표 추출 (오른손)
             fingertips2 = []
             for finger_tip_id in [4, 8, 12, 16, 20]:
                 lm = handLms2.landmark[finger_tip_id]
                 h, w, c = result.shape
                 cx, cy = int(lm.x * w), int(lm.y * h)
                 fingertips2.append((cx, cy))
-            
-            outflag1 = False  
-            for location in  fingertips1:              
-                cv2.circle(result, location, 5, (255, 0, 0), -1)  
 
+
+            outflag1 = False  
+            for location in  fingertips1:
+                #왼손 손가락 끝 점으로 표시              
+                cv2.circle(result, location, 5, (255, 0, 0), -1)  
+                #영역안에 들어왔을 경우 array에 추가 
                 for i in range(len(areas)):                   
                     if is_object_in_area(location, areas[i]):
                         event = i
                         arr_event1.append(event)
-                        cnt =+ 1
+                        cnt =+ 1 
             #print ( arr_event)
-            if cnt != 0 :
-                outflag1 = True
-            if not outflag1 :
-                arr_event1 = [-1]
+ 
                 
-            if arr_event1 != [-1] and not flag and arr_prev_event1 != arr_event1:
-                print ("Arr 1 ", arr_event1)
+            if arr_prev_event1 != arr_event1:
+                print ("Arr 1 ", arr_event1)               
                 pass
             #print ( arr_event)
             arr_prev_event1 = arr_event1 
@@ -251,13 +238,8 @@ while True:
                         event = i
                         arr_event2.append(event)
                         cnt =+ 1
-            #print ( arr_event)
-            if cnt != 0 :
-                outflag2 = True
-            if not outflag2 :
-                arr_event2 = [-1]
-                
-            if arr_event2 != [-1] and not flag and arr_prev_event2 != arr_event2:
+
+            if arr_prev_event2 != arr_event2:
                 print ( "arr 2 ",arr_event2)
                 pass
             #print ( arr_event)
