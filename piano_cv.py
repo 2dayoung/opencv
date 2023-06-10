@@ -8,66 +8,38 @@ import numpy as np
 import simpleaudio as sa
 from tkinter import *
 
- #midi filename생성 
-midi_filename = []
-notes = [60, 62, 64, 65, 67, 69, 71]
-for i, note in enumerate(notes):    
-    midi_filename.append(str(note) +'.mid')
-
-outport = mido.open_output()    
-# mixer config
-freq = 44100  # audio CD quality
-bitsize = -16   # unsigned 16 bit
-channels = 2  # 1 is mono, 2 is stereo
-buffer = 1024   # number of samples
-pygame.mixer.init(freq, bitsize, channels, buffer)
-
-# optional volume 0 to 1.0
-pygame.mixer.music.set_volume(1.0)
-
-def play_music(midi_filename):
-    pygame.mixer.music.load(midi_filename)
-    pygame.mixer.music.play()
-
-
-
-#=====================
-
-#<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
-#============================
-'''
-만들어서 재생  play_note()
-'''
 # Initialize Pygame and the MIDI module
 pygame.init()
 pygame.midi.init()
 
-# Get the ID of the first output device
-device_id = pygame.midi.get_default_output_id()
-print(device_id)
-
 # Open the MIDI output port
-output = pygame.midi.Output(0)
-#outport = mido.open_output()
-# Define a dictionary that maps note names to MIDI note numbers
-notes = {'C': 60, 'D': 62, 'E': 64, 'F': 65, 'G': 67, 'A': 69}
 #=========================
-def sound(event,midi_filename):
-        music_filename = midi_filename[event]
-        play_mido(music_filename)
-        
-print (midi_filename)
-#=========================
-
-
-def play_mido(file) :
+'''outport = mido.open_output()
+def play_mido(file)  : #outport = mido.open_output()이랑 세트
     mid= mido.MidiFile(file)
     for message in mid.play():
         outport.send(message)
+def sound(event,midi_filename):
+        music_filename = midi_filename[event]
+        play_mido(music_filename)
 
-def play_note(note_name):
-    # Convert the note name to a MIDI note number
-    note_number = notes[note_name]
+print("play_mido ")
+play_mido("sample135.mid")'''
+        
+
+#=========================
+
+#midi filename생성 
+midi_filename = []
+notes_make_file = [60, 62, 64, 65, 67, 69, 71]
+for i, note in enumerate(notes_make_file):    
+    midi_filename.append(str(note) +'.mid')
+print (midi_filename)
+
+output = pygame.midi.Output(0)
+# Define a dictionary that maps note names to MIDI note numbers
+
+def play_note(note_number):
     # Create a note on message and send it to the output port
     note_on = [0x90, note_number, 127]
     output.write_short(*note_on)
@@ -76,31 +48,14 @@ def play_note(note_name):
     # Create a note off message and send it to the output port
     note_off = [0x80, note_number, 0]
     output.write_short(*note_off)
+print("play_note")
+play_note(60) #output = pygame.midi.Output(0) 이랑 세트 
+
 
 def is_object_in_area(object_location, area):
     x, y = object_location
     start_x, start_y, width, height = area
     return start_x <= x < start_x + width and start_y <= y < start_y + height
-# 밑에 수정 이렇게 
-#============================================
-'''
-            for i in range(len(areas)):
-                for location in object_locations:
-                    if is_object_in_area(location, areas[i]):
-                        num = str(i)
-                        cv2.putText(result, num, (100+i*50, 30), cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 255, 255), 2)
-                        event = i
-                        if event == 1:
-                            play_note('C')
-                        elif event == 2:
-                            play_note('D')
-                        elif event == 3:
-                            play_note('E')
-                        elif event == 4:
-                            play_note('F')'''
-#============================================
-#>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-
 
 # Mediapipe Hand Landmark 모델 초기화
 mp_hands = mp.solutions.hands
@@ -175,10 +130,14 @@ while True:
                         arr_event.append(event)
                         cnt =+ 1
 
-            if not flag and arr_prev_event != arr_event:
+            #중복요소 제거
+            arr_event=set(arr_event)
+            arr_event=list(arr_event)
+            if arr_prev_event != arr_event:
                 if arr_event != [] :
-                    event=arr_event[0]
-                    sound(event,midi_filename)
+                    event =arr_event[0]
+                    play_note(60+event)  
+                    
                 print (arr_event)
                 pass
 
@@ -216,12 +175,17 @@ while True:
                     if is_object_in_area(location, areas[i]):
                         event = i
                         arr_event1.append(event)
+                        
                         cnt =+ 1 
-            #print ( arr_event)
- 
-                
+            #중복요소 제거
+            arr_event1=set(arr_event1)
+            #리스트로 변경
+            arr_event1=list(arr_event1)
             if arr_prev_event1 != arr_event1:
-                print ("Arr 1 ", arr_event1)               
+                if arr_event1 != [] :
+                    event =arr_event1[0]
+                    play_note(60+event)  
+                print ("Arr 1 ", arr_event1)        
                 pass
             #print ( arr_event)
             arr_prev_event1 = arr_event1 
@@ -237,11 +201,20 @@ while True:
                     if is_object_in_area(location, areas[i]):
                         event = i
                         arr_event2.append(event)
+                        
                         cnt =+ 1
 
+            #중복요소 제거
+            arr_event2=set(arr_event2)
+            #리스트로 변경
+            arr_event2=list(arr_event2)
             if arr_prev_event2 != arr_event2:
-                print ( "arr 2 ",arr_event2)
+                if arr_event2 != [] :
+                    event =arr_event2[0]
+                    play_note(60+event)  
+                print ("Arr 2 ", arr_event2)        
                 pass
+
             #print ( arr_event)
             arr_prev_event2 = arr_event2
             arr_event2 = [] 
