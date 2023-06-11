@@ -1,25 +1,23 @@
 import mido
 
 # Instantiate a MIDI file object
-mid = mido.MidiFile()
+mid = mido.MidiFile() # 이거 반복문 안에 넣으면 한음만 출력, 밖에 내놓으면 화음 출력 됨 
 
-# Add a track to the MIDI file
-track = mido.MidiTrack()
-mid.tracks.append(track)
+for note in [60, 62, 64, 65, 67, 69, 71,72,74,76]:
+    
+    # Add a track to the MIDI file
+    track = mido.MidiTrack()
+    mid.tracks.append(track)
 
-notes = {60, 62, 64,  65,  67,  69, 71}
-
-for i in notes: 
-    note_on = mido.Message('note_on', note=i, velocity=64, time=0)
-    note_off = mido.Message('note_off', note=i, velocity=64, time=500)
+    note_on = mido.Message('note_on', note=note, velocity=64, time=0)
+    note_off = mido.Message('note_off', note=note, velocity=64, time=1000)
     track.append(note_on)
     track.append(note_off)
-    
-    filename = str(i) +'.mid'
+
+    filename = str(note) + '.mid'
 
     # Save the MIDI file
     mid.save(filename)
-
 
 
 '''
