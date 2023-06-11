@@ -185,7 +185,7 @@ def cam():
         if cv2.waitKey(1) & 0xFF == ord('q'):
             exit_event.set()  # 종료 신호 설정
             break
-        
+
     cap.release()
     cv2.destroyAllWindows()
 
@@ -199,11 +199,13 @@ prev_arr1 = []
 
 while not exit_event.is_set():
     while arr1_event != [] and arr1_event != prev_arr1 :
-        print(arr1_event)
-        prev_arr1 = arr1_event 
+        #print(arr1_event)
+        
         threads_list = []
+        different_notes = [num for num in arr1_event if num not in prev_arr1]
+        print("diff",different_notes)
         # MIDI 파일 재생 스레드 추가
-        for i in arr1_event:
+        for i in different_notes:
             midi_thread = threading.Thread(target=play_mido, args=(midi_filename[i],))
             threads_list.append(midi_thread)
 
@@ -212,7 +214,7 @@ while not exit_event.is_set():
 
         for t in threads_list:
             t.join()
-    
+        prev_arr1 = arr1_event 
 
 cam_thread.join()
 print('End')
