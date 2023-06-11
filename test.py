@@ -1,41 +1,49 @@
-import pyaudio
+import threading
+import time
+import pygame
+from threading import Thread, Lock
 import mido
-import struct
+import cv2
 
-# MIDI 파일 로드
-midi_file = "sample135.mid"
+def long_task():
+    for i in range(20):
+        time.sleep(0.5)
+        print('Working : ' + str(i))
 
-# PyAudio 초기화
-p = pyaudio.PyAudio()
 
-# Stream 열기
-stream = p.open(format=pyaudio.paFloat32,
-                channels=1,
-                rate=44100,
-                output=True)
+def cam(): 
+    cap = cv2.VideoCapture(0)
+    while True:
+        # 웹캠에서 프레임 읽기
+        ret, frame = cap.read()
+        result = cv2.flip(frame, 1)
 
-# MIDI 파일 재생
-with mido.midifiles.MidiFile(midi_file) as midi:
-    for msg in midi.play():
-        if msg.type == 'note_on' or msg.type == 'note_off':
-            # 메시지를 MIDI 신호로 변환
-            note = msg.note
-            velocity = msg.velocity
-            duration = msg.time
 
-            # MIDI 신호를 오디오 신호로 변환
-            frequency = 440 * (2 ** ((note - 69) / 12))
-            samples_per_cycle = int(stream.get_sample_rate() / frequency)
-            samples = [velocity / 127.0 * 0.3 * (1 - i / samples_per_cycle % 1)
-                       for i in range(samples_per_cycle * duration)]
-            signal = b''.join([struct.pack('f', sample) for sample in samples])
+        cv2.imshow("Fingertip Detection division", result)
 
-            # 오디오 재생
-            stream.write(signal)
+        if cv2.waitKey(1) & 0xFF == ord('q'):
+            break
+    cap.release()
+    cv2.destroyAllWindows()
 
-# Stream 닫기
-stream.stop_stream()
-stream.close()
+threads_list = list()
+cam = threading.Thread(target=cam)
 
-# PyAudio 종료
-p.terminate()
+threads_list.append(cam)
+for i in range(20):
+    t = threading.Thread(target=long_task)
+    threads_list.append(t)
+dd
+
+for t in threads_list:
+        t.start()
+
+for t in threads_list:
+    t.join()
+
+print('End')
+
+# 종료
+pygame.mixer.quit()
+pygame.quit()
+
