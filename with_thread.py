@@ -4,7 +4,8 @@ from threading import Thread, Lock
 import mido
 import cv2
 import mediapipe as mp
-
+from PIL import Image, ImageFont, ImageDraw
+import numpy as np
 
 #======================================================================
 #함수
@@ -46,10 +47,10 @@ hands = mp_hands.Hands(static_image_mode=False,
 object_locations = [(2, 4), (5, 3), (1, 2), (4, 1), (3, 5), (5, 2), (2, 3), (1, 5), (3, 1), (4, 4)]
 
 #영역은 [x,y,w,h] 여야함.
-# areas = [[53, 384, 53, 48], [106, 384, 53, 48], [159, 384, 53, 48],
-#  [212, 384, 53, 48], [265, 384, 53, 48], [318, 384, 53, 48],
-#  [371, 384, 53, 48], [424, 384, 53, 48], [477, 384, 53, 48],
-#  [530, 384, 53, 48]]
+areas = [[53, 384, 53, 48], [106, 384, 53, 48], [159, 384, 53, 48],
+ [212, 384, 53, 48], [265, 384, 53, 48], [318, 384, 53, 48],
+ [371, 384, 53, 48], [424, 384, 53, 48], [477, 384, 53, 48],
+ [530, 384, 53, 48]]
 
 mouse_click_count = 0
 roi_points = []
@@ -110,7 +111,7 @@ def cam():
     global arr1_event
 
 
-    cap = cv2.VideoCapture(1)
+    cap = cv2.VideoCapture(0)
 
     cv2.namedWindow("Fingertip Detection division")
     cv2.setMouseCallback("Fingertip Detection division", mouse_callback)
@@ -132,7 +133,8 @@ def cam():
         # 웹캠에서 프레임 읽기& 좌우반전 &크기
         ret, frame = cap.read()
         result = cv2.flip(frame, 1)
-
+        cv2.putText(result,"set",(10,20),cv2.FONT_ITALIC,1,(255, 255, 255),2)
+        
         cv2.imshow("Fingertip Detection division", result)
         if mouse_drag_started:
             # 프레임을 RGB로 변환
@@ -230,7 +232,9 @@ def cam():
             #영역에 사각형으로 표시 
             for area in areas:
                 cv2.rectangle(result, (area[0], area[1]),(area[0]+area[2],area[1]+area[3]), (0, 255, 0), 2)
-
+            for idx in arr1_event:
+                area = areas[idx]
+                cv2.rectangle(result, (area[0], area[1]), (area[0] + area[2], area[1] + area[3]), (0, 255, 0), thickness=cv2.FILLED)
         cv2.imshow("Fingertip Detection division", result)
 
         if cv2.waitKey(1) & 0xFF == ord('q'):
