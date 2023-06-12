@@ -78,7 +78,7 @@ def piano():
     global areas
     areas = []
     global black
-    black=[1, 2, 4, 5, 6, 8, 9, 11, 12, 13]
+    black=[0, 1, 3, 4, 5, 7, 8, 10, 11, 12]
     def divide_area():
         global areas,roi_points
         x1 =roi_points[0][0]
@@ -117,8 +117,8 @@ def piano():
         
         cap = cv2.VideoCapture(0)
 
-        cv2.namedWindow("Fingertip Detection division")
-        cv2.setMouseCallback("Fingertip Detection division", mouse_callback)
+        cv2.namedWindow("paino")
+        cv2.setMouseCallback("paino", mouse_callback)
 
         cnt = 0
         arr_event = []
@@ -144,7 +144,7 @@ def piano():
             height = cap_height * 1.5           
             result = cv2.resize(result, (int(width), int(height)), interpolation=cv2.INTER_LINEAR)
             
-            cv2.imshow("Fingertip Detection division", result)
+            cv2.imshow("paino", result)
             if mouse_drag_started:
                 # 프레임을 RGB로 변환
                 image = cv2.cvtColor(result, cv2.COLOR_BGR2RGB)
@@ -242,11 +242,13 @@ def piano():
                 for i, area in enumerate(areas):
                     cv2.rectangle(result, (area[0], area[1]),(area[0]+area[2],area[1]+area[3]),(0,0,0), 2)
                     if i in black :
-                        cv2.circle(result, (area[0], area[1]+7), 10, (0,0,0), -1)
+                        cv2.circle(result, (area[0]+area[2], area[1]+7), int(area[2]*0.3), (0,0,0), -1)
+                    if i ==7 :
+                        cv2.putText(result,"C4",(area[0]+5,area[1]+40), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0,0,0), 2)
                 for idx in arr1_event:
                     area = areas[idx]
                     cv2.rectangle(result, (area[0], area[1]), (area[0] + area[2], area[1] + area[3]), (200, 200, 25), thickness=cv2.FILLED)
-            cv2.imshow("Fingertip Detection division", result)
+            cv2.imshow("paino", result)
 
             if cv2.waitKey(1) & 0xFF == ord('q'):
                 exit_event.set()  # 종료 신호 설정
@@ -325,7 +327,7 @@ def drum() :
                     mouse_drag_started_drum = False
 
     cap = cv2.VideoCapture(0)
-    cv2.namedWindow('img')
+    cv2.namedWindow('drum')
 
     # 드럼 소리를 재생할 오디오 파일 경로
     drum_sound1 = sa.WaveObject.from_wave_file('drum/hihat.wav')
@@ -343,14 +345,18 @@ def drum() :
         if not ret:
             break
 
-        # 이미지 크기 조정
-        frame = cv2.resize(frame, (800, 600))
+        # 가로 해상도를 조정
+        cap_width = int(cap.get(cv2.CAP_PROP_FRAME_WIDTH))  # 현재 캠의 가로 해상도
+        cap_height = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))  # 현재 캠의 세로 해상도           
+        width = cap_width * 1.5
+        height = cap_height * 1.5           
+        frame = cv2.resize(frame, (int(width), int(height)), interpolation=cv2.INTER_LINEAR)
         
         # 이미지를 BGR에서 HSV로 변환
         hsv = cv2.cvtColor(frame, cv2.COLOR_BGR2HSV)
 
         img = frame.copy()
-        cv2.setMouseCallback('img', mouse_callback)
+        cv2.setMouseCallback('drum', mouse_callback)
 
         if mouse_drag_started_drum:
             x1, y1 = roi_points_drum[0]
@@ -364,14 +370,14 @@ def drum() :
         for i, rect in enumerate(rectangles_drum):
             x1, y1, x2, y2 = rect
             color = [(0, 165, 255), (0, 0, 255), (0, 255, 0), (255, 0, 0), (0, 0, 0)][i]
-
-
             cv2.rectangle(img, (x1, y1), (x2, y2), color, 2)
 
-        cv2.imshow('img', img)
+        cv2.imshow('drum', img)
 
         lower_blue = (90, 100, 100)
         upper_blue = (120, 255, 255)
+
+
         # HSV 이미지에서 색상 범위에 해당하는 영역을 이진화합니다.
         mask = cv2.inRange(hsv, lower_blue, upper_blue)
         # 잡음 제거를 위한 모폴로지 연산
@@ -380,7 +386,7 @@ def drum() :
         closing = cv2.morphologyEx(opening, cv2.MORPH_CLOSE, kernel)
         opening = cv2.morphologyEx(closing, cv2.MORPH_OPEN, kernel)
         closing = cv2.morphologyEx(opening, cv2.MORPH_CLOSE, kernel)
-        cv2.imshow("closing ",closing )
+        # cv2.imshow("closing ",closing )
         
         # 객체 검출
         contours, _ = cv2.findContours(closing, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
@@ -407,8 +413,8 @@ def drum() :
                     event[i] = 4
                     
 
-                cv2.rectangle(img, (cx - w // 2, cy - h // 2), (cx + w // 2, cy + h // 2), (0, 0, 255), 2)
-                
+                # cv2.rectangle(img, (cx - w // 2, cy - h // 2), (cx + w // 2, cy + h // 2), (255,255,255), 2)
+                cv2.circle(img,(cx,cy),max(w,h)//2,(255,255,255),2)
             # 두 개의 event 값을 독립적으로 처리
             if event[0] != -1:
                 if event[0] == prev_event[0]:
@@ -446,7 +452,7 @@ def drum() :
             print(event)
         
         # 결과 출력
-        cv2.imshow('img', img)
+        cv2.imshow('drum', img)
 
         # 'q' 키를 누르면 종료
         if cv2.waitKey(1) & 0xFF == ord('q'):
