@@ -4,14 +4,36 @@ import cv2
 import numpy as np
 import simpleaudio as sa
 
+# Initialize HSV values
+h, s, v = 0, 0, 0
+
+# 웹캠 캡처 생성
+cap = cv2.VideoCapture(0)
 
 # 트랙바를 위한 콜백 함수
 def nothing(x):
     pass
 
-# 웹캠에서 프레임을 캡처합니다.
-cap = cv2.VideoCapture(0)
+# Initialize flag for drawing rectangle
+draw_rectangle = False
 
+def get_color(event, x, y, flags, param):
+    global h, s, v, draw_rectangle  # Declare the variables as global
+    
+    if event == cv2.EVENT_LBUTTONDOWN:
+        # Retrieve the color at the clicked point in BGR format
+        color = frame[y, x]
+
+        # Convert BGR to HSV format
+        hsv_color = cv2.cvtColor(np.uint8([[color]]), cv2.COLOR_BGR2HSV)
+
+        # Retrieve the H, S, V values from HSV format
+        h, s, v = hsv_color[0][0]
+
+        print(f"Clicked color: BGR({color[2]}, {color[1]}, {color[0]}) | HSV({h}, {s}, {v})")
+        
+        # Set the flag to True for drawing the rectangle
+        draw_rectangle = True
 # 윈도우와 트랙바 생성
 cv2.namedWindow('frame')
 cv2.createTrackbar('low_H', 'frame', 0, 255, nothing)
@@ -26,13 +48,17 @@ cv2.createTrackbar('high_V', 'frame', 255, 255, nothing)
 # lower_blue = (100, 30, 30)
 # upper_blue = (130, 255, 255)
 
-# 웹캠 캡처 생성
-cap = cv2.VideoCapture(0)
 
+
+# Create a window and set the mouse event callback function
+cv2.namedWindow("Webcam")
+cv2.setMouseCallback("Webcam", get_color)
 
 while True:
     # 현재 프레임 캡처
     ret, frame = cap.read()
+    frame = cv2.flip(frame, 1)
+    cv2.imshow("Webcam", frame)
 
     # 프레임이 캡처되지 않았으면 종료
     if not ret:
@@ -91,3 +117,8 @@ while True:
 # 자원 해제
 cap.release()
 cv2.destroyAllWindows()
+
+
+
+
+
