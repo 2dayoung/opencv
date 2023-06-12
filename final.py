@@ -9,7 +9,7 @@ from tkinter import *
 import threading
 import pygame
 from threading import Thread, Lock
-from PIL import Image, ImageFont, ImageDraw
+
 
 def piano():
     midi_filename = []
