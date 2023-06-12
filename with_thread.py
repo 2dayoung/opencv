@@ -23,6 +23,7 @@ def play_mido(midi_filename):
     mid = mido.MidiFile(midi_filename)
     for message in mid.play():
         outport.send(message)
+    print(midi_filename)
 
 def is_object_in_area(object_location, area):
     x, y = object_location
@@ -38,8 +39,6 @@ hands = mp_hands.Hands(static_image_mode=False,
                     min_detection_confidence=0.7, 
                     min_tracking_confidence=0.7)
 
-
-
 #=====================================================================
 # mediapipe 변수 선언
 #=====================================================================
@@ -51,8 +50,6 @@ areas = [[53, 384, 53, 48], [106, 384, 53, 48], [159, 384, 53, 48],
  [212, 384, 53, 48], [265, 384, 53, 48], [318, 384, 53, 48],
  [371, 384, 53, 48], [424, 384, 53, 48], [477, 384, 53, 48],
  [530, 384, 53, 48]]
-
-
 
 
 
@@ -118,7 +115,7 @@ def cam():
                 #전 array와 다르면 global변수로 전달 
                 if arr_prev_event != arr_event:
                     arr1_event = arr_event                                       
-                    print (arr_event)
+                    #print (arr_event)
                     pass
 
                 arr_prev_event = arr_event 
@@ -170,7 +167,7 @@ def cam():
 
                 if arr_prev_event1 != arr_event1:                        
                     arr1_event = arr_event1                                       
-                    print ("양손",arr_event1)
+                    #print ("양손",arr_event1)
                     pass
 
                 arr_prev_event1 = arr_event1 
@@ -202,10 +199,10 @@ while not exit_event.is_set():
         #print(arr1_event)
         
         threads_list = []
-        different_notes = [num for num in arr1_event if num not in prev_arr1]
-        print("diff",different_notes)
+        #different_notes = [num for num in arr1_event if num not in prev_arr1]
+        #print("diff",different_notes)
         # MIDI 파일 재생 스레드 추가
-        for i in different_notes:
+        for i in arr1_event:
             midi_thread = threading.Thread(target=play_mido, args=(midi_filename[i],))
             threads_list.append(midi_thread)
 
