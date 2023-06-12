@@ -13,7 +13,7 @@ from PIL import Image, ImageFont, ImageDraw
 
 def piano():
     midi_filename = []
-    notes_make_file = [60, 62, 64, 65, 67, 69, 71, 72, 74, 76,77,79,81,83]
+    notes_make_file = [48, 50, 52, 53, 55, 57, 59,60, 62, 64, 65, 67, 69, 71]
     for i, note in enumerate(notes_make_file):    
         midi_filename.append(str(note) + '.mid')
     print(midi_filename)
@@ -77,7 +77,8 @@ def piano():
                 roi_points=[]
     global areas
     areas = []
-
+    global black
+    black=[1, 2, 4, 5, 6, 8, 9, 11, 12, 13]
     def divide_area():
         global areas,roi_points
         x1 =roi_points[0][0]
@@ -95,7 +96,7 @@ def piano():
             if i == n - 1:
                 area_w = width - (i * area_width)
             areas.append([area_x, area_y, area_w, area_h])
-        
+            
         print(areas)  
     
     global arr1_event
@@ -111,7 +112,7 @@ def piano():
 
     def cam():
         # global 변수  
-        global arr1_event, mouse_drag_started
+        global arr1_event, mouse_drag_started,black
 
         
         cap = cv2.VideoCapture(0)
@@ -131,12 +132,17 @@ def piano():
 
 
         while not exit_event.is_set() :
-
             
             # 웹캠에서 프레임 읽기& 좌우반전 &크기
             ret, frame = cap.read()
             result = cv2.flip(frame, 1)
-            cv2.putText(result,"set",(10,20),cv2.FONT_ITALIC,1,(255, 255, 255),2)
+
+            # 가로 해상도를 조정
+            cap_width = int(cap.get(cv2.CAP_PROP_FRAME_WIDTH))  # 현재 캠의 가로 해상도
+            cap_height = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))  # 현재 캠의 세로 해상도           
+            width = cap_width * 1.5
+            height = cap_height * 1.5           
+            result = cv2.resize(result, (int(width), int(height)), interpolation=cv2.INTER_LINEAR)
             
             cv2.imshow("Fingertip Detection division", result)
             if mouse_drag_started:
@@ -231,13 +237,15 @@ def piano():
 
                         arr_prev_event1 = arr_event1 
                         arr_event1 = [] 
-
+                
                 #영역에 사각형으로 표시 
-                for area in areas:
-                    cv2.rectangle(result, (area[0], area[1]),(area[0]+area[2],area[1]+area[3]), (200, 200, 25), 2)
+                for i, area in enumerate(areas):
+                    cv2.rectangle(result, (area[0], area[1]),(area[0]+area[2],area[1]+area[3]),(0,0,0), 2)
+                    if i in black :
+                        cv2.circle(result, (area[0], area[1]+7), 10, (0,0,0), -1)
                 for idx in arr1_event:
                     area = areas[idx]
-                    cv2.rectangle(result, (area[0], area[1]), (area[0] + area[2], area[1] + area[3]), (200, 100, 12), thickness=cv2.FILLED)
+                    cv2.rectangle(result, (area[0], area[1]), (area[0] + area[2], area[1] + area[3]), (200, 200, 25), thickness=cv2.FILLED)
             cv2.imshow("Fingertip Detection division", result)
 
             if cv2.waitKey(1) & 0xFF == ord('q'):
@@ -305,8 +313,9 @@ def drum() :
         frame= cv2.flip(frame,1)
 
         # 이미지 크기 조정
-        frame = cv2.resize(frame, (640, 480))
+        frame = cv2.resize(frame, (1920, 1080))
         
+
         # 이미지를 BGR에서 HSV로 변환
         hsv = cv2.cvtColor(frame, cv2.COLOR_BGR2HSV)
 
