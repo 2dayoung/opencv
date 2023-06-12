@@ -12,7 +12,7 @@ import mediapipe as mp
 
 # midi filename 생성
 midi_filename = []
-notes_make_file = [60, 62, 64, 65, 67, 69, 71, 72, 74, 76]
+notes_make_file = [60, 62, 64, 65, 67, 69, 71, 72, 74, 76,77,79,81,83]
 for i, note in enumerate(notes_make_file):    
     midi_filename.append(str(note) + '.mid')
 print(midi_filename)
@@ -46,26 +46,75 @@ hands = mp_hands.Hands(static_image_mode=False,
 object_locations = [(2, 4), (5, 3), (1, 2), (4, 1), (3, 5), (5, 2), (2, 3), (1, 5), (3, 1), (4, 4)]
 
 #영역은 [x,y,w,h] 여야함.
-areas = [[53, 384, 53, 48], [106, 384, 53, 48], [159, 384, 53, 48],
- [212, 384, 53, 48], [265, 384, 53, 48], [318, 384, 53, 48],
- [371, 384, 53, 48], [424, 384, 53, 48], [477, 384, 53, 48],
- [530, 384, 53, 48]]
+# areas = [[53, 384, 53, 48], [106, 384, 53, 48], [159, 384, 53, 48],
+#  [212, 384, 53, 48], [265, 384, 53, 48], [318, 384, 53, 48],
+#  [371, 384, 53, 48], [424, 384, 53, 48], [477, 384, 53, 48],
+#  [530, 384, 53, 48]]
 
+mouse_click_count = 0
+roi_points = []
+mouse_drag_started = False
 
+def mouse_callback(event, x, y, flags, param):
+    global mouse_drag_started,roi_x, roi_y, roi_width, roi_height, roi_points, mouse_click_count
+
+    if event == cv2.EVENT_LBUTTONDOWN:
+        if mouse_click_count < 10:
+                # 좌표 출력
+            print(f"Clicked: ({x}, {y})")
+            roi_points.append((x, y))
+            mouse_click_count += 1
+            
+ 
+        if mouse_click_count == 2:
+            mouse_click_count=0           
+            divide_area()
+            mouse_drag_started=True
+            roi_points=[]
+
+areas = []
+
+def divide_area():
+    global areas,roi_points
+    x1 =roi_points[0][0]
+    x2 = roi_points[1][0]
+    y1= roi_points[0][1]
+    n=14
+    width = x2 - x1
+    area_width = width // n
+    
+    for i in range(n):
+        area_x = x1 + (i * area_width)
+        area_y = y1
+        area_w = area_width
+        area_h = 50
+        if i == n - 1:
+            area_w = width - (i * area_width)
+        areas.append([area_x, area_y, area_w, area_h])
+    
+    print(areas)  
+ 
 
 arr1_event = []
 #=====================================================================
 # 종료 신호를 전달하기 위한 이벤트 객체
 exit_event = threading.Event()
 #=====================================================================
+# 마우스 이벤트 콜백 등록
 
 
+#=====================================================================
 
 def cam():
     # global 변수  
     global arr1_event
 
-    cap = cv2.VideoCapture(0)
+
+    cap = cv2.VideoCapture(1)
+
+    cv2.namedWindow("Fingertip Detection division")
+    cv2.setMouseCallback("Fingertip Detection division", mouse_callback)
+
     cnt = 0
     arr_event = []
     arr_event1 = []
@@ -77,105 +126,110 @@ def cam():
     arr_prev_event1 = None
 
 
-    while not exit_event.is_set():
+    while not exit_event.is_set() :
+
+        
         # 웹캠에서 프레임 읽기& 좌우반전 &크기
         ret, frame = cap.read()
         result = cv2.flip(frame, 1)
-        # 프레임을 RGB로 변환
-        image = cv2.cvtColor(result, cv2.COLOR_BGR2RGB)
-        # Mediapipe Hand Landmark 모델을 사용하여 이미지 처리
-        results = hands.process(image)        
 
-        if results.multi_hand_landmarks:
-            if len(results.multi_hand_landmarks) == 1:  # 손이 한손만 있을 때
-                handLms = results.multi_hand_landmarks[0]
-                
-            # 각 손가락 끝의 랜드마크 좌표 추출
-                fingertips = []
-                for finger_tip_id in [4, 8, 12, 16, 20]:
-                    lm = handLms.landmark[finger_tip_id]
-                    h, w, c = result.shape   #좌표가 0~1값임.화면상의 픽셀 좌표로 변환하기 위해 이미지의 크기필요 C는 채널
-                    cx, cy = int(lm.x *w), int(lm.y*h)
-                    fingertips.append((cx,cy))
+        cv2.imshow("Fingertip Detection division", result)
+        if mouse_drag_started:
+            # 프레임을 RGB로 변환
+            image = cv2.cvtColor(result, cv2.COLOR_BGR2RGB)
+            # Mediapipe Hand Landmark 모델을 사용하여 이미지 처리
+            results = hands.process(image)        
 
-                              
-                for location in  fingertips:
-                    # 손가락 끝에 원 그리기              
-                    cv2.circle(result, location, 5, (255, 0, 0), -1)  
-                    #영역에 들어왔는지 검사            
-                    for i in range(len(areas)):                   
-                        if is_object_in_area(location, areas[i]):
-                            event = i
-                            arr_event.append(event)
-                            
-                #중복요소 제거
-                arr_event=set(arr_event)
-                arr_event=list(arr_event)
+            if results.multi_hand_landmarks:
+                if len(results.multi_hand_landmarks) == 1:  # 손이 한손만 있을 때
+                    handLms = results.multi_hand_landmarks[0]
+                    
+                # 각 손가락 끝의 랜드마크 좌표 추출
+                    fingertips = []
+                    for finger_tip_id in [4, 8, 12, 16, 20]:
+                        lm = handLms.landmark[finger_tip_id]
+                        h, w, c = result.shape   #좌표가 0~1값임.화면상의 픽셀 좌표로 변환하기 위해 이미지의 크기필요 C는 채널
+                        cx, cy = int(lm.x *w), int(lm.y*h)
+                        fingertips.append((cx,cy))
 
-                #전 array와 다르면 global변수로 전달 
-                if arr_prev_event != arr_event:
-                    arr1_event = arr_event                                       
-                    #print (arr_event)
+                                
+                    for location in  fingertips:
+                        # 손가락 끝에 원 그리기              
+                        cv2.circle(result, location, 5, (255, 0, 0), -1)  
+                        #영역에 들어왔는지 검사            
+                        for i in range(len(areas)):                   
+                            if is_object_in_area(location, areas[i]):
+                                event = i
+                                arr_event.append(event)
+                                
+                    #중복요소 제거
+                    arr_event=set(arr_event)
+                    arr_event=list(arr_event)
+
+                    #전 array와 다르면 global변수로 전달 
+                    if arr_prev_event != arr_event:
+                        arr1_event = arr_event                                       
+                        #print (arr_event)
+                        pass
+
+                    arr_prev_event = arr_event 
+                    arr_event = [] 
+
+                # 양손다 들어왔을때    
+                else :      
                     pass
+                    handLms1 = results.multi_hand_landmarks[0]  # 왼손
+                    handLms2 = results.multi_hand_landmarks[1]  # 오른손
 
-                arr_prev_event = arr_event 
-                arr_event = [] 
+                # 각 손가락 끝의 랜드마크 좌표 추출 (왼손)
+                    fingertips1 = []
+                    for finger_tip_id in [4, 8, 12, 16, 20]:
+                        lm = handLms1.landmark[finger_tip_id]
+                        h, w, c = result.shape
+                        cx, cy = int(lm.x * w), int(lm.y * h)
+                        fingertips1.append((cx, cy))
+                    
+                # 각 손가락 끝의 랜드마크 좌표 추출 (오른손)
+                    fingertips2 = []
+                    for finger_tip_id in [4, 8, 12, 16, 20]:
+                        lm = handLms2.landmark[finger_tip_id]
+                        h, w, c = result.shape
+                        cx, cy = int(lm.x * w), int(lm.y * h)
+                        fingertips2.append((cx, cy))
+                    #왼손
+                    for location in  fingertips1:       
+                        cv2.circle(result, location, 5, (255, 0, 0), -1)  
+                        #영역안에 들어왔을 경우 array에 추가 
+                        for i in range(len(areas)):                   
+                            if is_object_in_area(location, areas[i]):
+                                event = i
+                                arr_event1.append(event)
+                    #오른손
+                    for location in  fingertips2:              
+                        cv2.circle(result, location, 5, (255, 0, 0), -1)  
+                        #영역안에 들어왔을 경우 array에 추가
+                        for i in range(len(areas)):                   
+                            if is_object_in_area(location, areas[i]):
+                                event = i
+                                arr_event1.append(event)            
+                                
 
-            # 양손다 들어왔을때    
-            else :      
-                pass
-                handLms1 = results.multi_hand_landmarks[0]  # 왼손
-                handLms2 = results.multi_hand_landmarks[1]  # 오른손
+                    #중복요소 제거
+                    arr_event1=set(arr_event1)
+                    #리스트로 변경
+                    arr_event1=list(arr_event1)
 
-            # 각 손가락 끝의 랜드마크 좌표 추출 (왼손)
-                fingertips1 = []
-                for finger_tip_id in [4, 8, 12, 16, 20]:
-                    lm = handLms1.landmark[finger_tip_id]
-                    h, w, c = result.shape
-                    cx, cy = int(lm.x * w), int(lm.y * h)
-                    fingertips1.append((cx, cy))
-                
-            # 각 손가락 끝의 랜드마크 좌표 추출 (오른손)
-                fingertips2 = []
-                for finger_tip_id in [4, 8, 12, 16, 20]:
-                    lm = handLms2.landmark[finger_tip_id]
-                    h, w, c = result.shape
-                    cx, cy = int(lm.x * w), int(lm.y * h)
-                    fingertips2.append((cx, cy))
-                #왼손
-                for location in  fingertips1:       
-                    cv2.circle(result, location, 5, (255, 0, 0), -1)  
-                    #영역안에 들어왔을 경우 array에 추가 
-                    for i in range(len(areas)):                   
-                        if is_object_in_area(location, areas[i]):
-                            event = i
-                            arr_event1.append(event)
-                #오른손
-                for location in  fingertips2:              
-                    cv2.circle(result, location, 5, (255, 0, 0), -1)  
-                    #영역안에 들어왔을 경우 array에 추가
-                    for i in range(len(areas)):                   
-                        if is_object_in_area(location, areas[i]):
-                            event = i
-                            arr_event1.append(event)            
-                            
+                    if arr_prev_event1 != arr_event1:                        
+                        arr1_event = arr_event1                                       
+                        #print ("양손",arr_event1)
+                        pass
 
-                #중복요소 제거
-                arr_event1=set(arr_event1)
-                #리스트로 변경
-                arr_event1=list(arr_event1)
+                    arr_prev_event1 = arr_event1 
+                    arr_event1 = [] 
 
-                if arr_prev_event1 != arr_event1:                        
-                    arr1_event = arr_event1                                       
-                    #print ("양손",arr_event1)
-                    pass
-
-                arr_prev_event1 = arr_event1 
-                arr_event1 = [] 
-
-        #영역에 사각형으로 표시 
-        for area in areas:
-            cv2.rectangle(result, (area[0], area[1]),(area[0]+area[2],area[1]+area[3]), (0, 255, 0), 2)
+            #영역에 사각형으로 표시 
+            for area in areas:
+                cv2.rectangle(result, (area[0], area[1]),(area[0]+area[2],area[1]+area[3]), (0, 255, 0), 2)
 
         cv2.imshow("Fingertip Detection division", result)
 
