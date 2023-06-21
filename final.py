@@ -15,8 +15,8 @@ from threading import Thread, Lock
 #=====================================================================
 
 midi_filename = []
-notes_make_file = [48, 50, 52, 53, 55, 57, 59,60, 62, 64, 65, 67, 69, 71]
-for i, note in enumerate(notes_make_file):    
+notes_make_file = [48, 50, 52, 53, 55, 57, 59, 60, 62, 64, 65, 67, 69, 71]
+for i, note in enumerate(notes_make_file):
     midi_filename.append(str(note) + '.mid')
 
 # play_mido 함수
@@ -31,7 +31,6 @@ def is_object_in_area(object_location, area):
     start_x, start_y, width, height = area
     return start_x <= x < start_x + width and start_y <= y < start_y + height
 
-global mouse_click_count, roi_points, mouse_drag_started
 mouse_drag_started = False
 mouse_click_count =0
 roi_points=[]
@@ -50,16 +49,14 @@ def mouse_callback(event, x, y, flags, param):
             mouse_click_count=0           
             divide_area()
             mouse_drag_started=True
-            print("true")
             roi_points=[]
 
-#영역은 [x,y,w,h] 여야함.                
+#영역은 [x,y,w,h] 여야함             
 areas = []
 black=[0, 1, 3, 4, 5, 7, 8, 10, 11, 12]
 
 def divide_area(): #건반영역 좌표 설정 
     global areas,roi_points
-
     x1 = roi_points[0][0]
     x2 = roi_points[1][0]
     y1 = roi_points[0][1]
@@ -77,7 +74,7 @@ def divide_area(): #건반영역 좌표 설정
 
 def which_note():
     # global 변수  
-    global arr1_event, mouse_drag_started,black
+    global pressed_keys, mouse_drag_started,black
 
      # Mediapipe Hand Landmark 모델 초기화
     mp_hands = mp.solutions.hands
@@ -91,12 +88,8 @@ def which_note():
     cv2.namedWindow("piano")
     cv2.setMouseCallback("piano", mouse_callback)
 
-
-    arr_event = []
-    arr_event1 = []
-    arr_prev_event = None
-    arr_prev_event1 = None
-
+    onehand_event = []
+    twohands_event = []
 
     while not exit_event.is_set() :
         
@@ -129,26 +122,20 @@ def which_note():
                         fingertips.append((cx,cy))
 
                     for location in  fingertips:
-                        # 손가락 끝에 원 그리기              
+                    # 손가락 끝에 원 그리기              
                         cv2.circle(result, location, 5, (255, 0, 0), -1)  
-                        #영역에 들어왔는지 검사            
+                    # 영역에 들어왔는지 검사하고 list에 추가             
                         for i in range(len(areas)):                   
                             if is_object_in_area(location, areas[i]):
                                 event = i
-                                arr_event.append(event)
+                                onehand_event.append(event)
                                 
-                    #중복요소 제거
-                    arr_event=set(arr_event)
-                    arr1_event=list(arr_event)
+                #중복요소 제거
+                    onehand_event=set(onehand_event)
+                    pressed_keys=list(onehand_event)
 
-                    # #전 array와 다르면 global변수로 전달 
-                    # if arr_prev_event != arr_event:
-                    #     arr1_event = arr_event                                       
-                    #     print (arr_event)
-                    #     pass
-
-                    # arr_prev_event = arr_event 
-                    arr_event = [] 
+                #리스트 초기화
+                    onehand_event = [] 
 
                 # 양손다 들어왔을때    
                 else :      
@@ -171,43 +158,39 @@ def which_note():
                         h, w, c = result.shape
                         cx, cy = int(lm.x * w), int(lm.y * h)
                         fingertips2.append((cx, cy))
-                    #왼손
+
+                # 왼손영역안에 들어왔을 경우 list에 추가 
                     for location in  fingertips1:       
                         cv2.circle(result, location, 5, (255, 0, 0), -1)  
-                        #영역안에 들어왔을 경우 array에 추가 
                         for i in range(len(areas)):                   
                             if is_object_in_area(location, areas[i]):
                                 event = i
-                                arr_event1.append(event)
-                    #오른손
+                                twohands_event.append(event)
+
+                # 오른손영역안에 들어왔을 경우 list에 추가
                     for location in  fingertips2:              
                         cv2.circle(result, location, 5, (255, 0, 0), -1)  
-                        #영역안에 들어왔을 경우 array에 추가
                         for i in range(len(areas)):                   
                             if is_object_in_area(location, areas[i]):
                                 event = i
-                                arr_event1.append(event)            
+                                twohands_event.append(event)            
                                 
-                    #중복요소 제거
-                    arr_event1=set(arr_event1)
-                    #리스트로 변경
-                    arr1_event=list(arr_event1)
-
-                    # if arr_prev_event1 != arr_event1:                        
-                    #     arr1_event = arr_event1                                       
-                    #     pass
-
-                    # arr_prev_event1 = arr_event1 
-                    arr_event1 = [] 
+                # 중복요소 제거
+                    twohands_event=set(twohands_event)
+                # 리스트로 변경
+                    pressed_keys=list(twohands_event)
+                # 리스트 초기화
+                    twohands_event = [] 
             
-            #영역 사각형으로 표시 
+            # 영역 사각형으로 표시 
             for i, area in enumerate(areas):
                 cv2.rectangle(result, (area[0], area[1]),(area[0]+area[2],area[1]+area[3]),(0,0,0), 2)
                 if i in black :
                     cv2.circle(result, (area[0]+area[2], area[1]+7), int(area[2]*0.3), (0,0,0), -1)
                 if i ==7 :
-                    cv2.putText(result,"C4",(area[0]+5,area[1]+40), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0,0,0), 2)
-            for idx in arr1_event:
+                    cv2.putText(result,"C4", (area[0] + 5,area[1] + 40), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0,0,0), 2)
+            # 눌린 건반 색으로 표시 
+            for idx in pressed_keys:
                 area = areas[idx]
                 cv2.rectangle(result, (area[0], area[1]), (area[0] + area[2], area[1] + area[3]), (200, 200, 25), thickness=cv2.FILLED)
 
@@ -224,37 +207,37 @@ def which_note():
 # piano선택시 실행 함수 
 #=====================================================================
 def piano():
-
     # 종료 신호를 전달하기 위한 이벤트 객체
     global exit_event
     exit_event = threading.Event()
 
-    global arr1_event
-    arr1_event = []
+    global pressed_keys
+    pressed_keys = []
 
-    #====================================================================
     # 카메라 스레드 추가
     cam_thread = threading.Thread(target=which_note)
     cam_thread.start()
-    prev_arr1 = []
+    previous_key = []
 
     while not exit_event.is_set():
-        while arr1_event != [] and arr1_event != prev_arr1 :
+        while pressed_keys != [] and pressed_keys != previous_key :
             
             threads_list = []
 
             # MIDI 파일 재생 스레드 생성, 추가
-            for i in arr1_event:
+            for i in pressed_keys:
                 midi_thread = threading.Thread(target=play_mido, args=(midi_filename[i],))
                 threads_list.append(midi_thread)
                 
             #스레드 실행
             for t in threads_list:
                 t.start()
+
             #스레드 끝날때 까지 대기 
             for t in threads_list:
                 t.join()
-            prev_arr1 = arr1_event 
+
+            previous_key = pressed_keys 
 
     cam_thread.join()
     print('End')
@@ -267,7 +250,7 @@ def piano():
 # drum선택시 실행 함수 
 #=====================================================================
 def drum() : 
-    global mouse_click_count_drum,roi_points_drum,mouse_drag_started_drum,rectangles_drum
+    global mouse_click_count_drum, roi_points_drum, mouse_drag_started_drum, rectangles_drum
     mouse_click_count_drum = 0
     roi_points_drum = []
     mouse_drag_started_drum = False
@@ -292,6 +275,7 @@ def drum() :
                     x1, y1 = roi_points_drum[0]
                     x2, y2 = roi_points_drum[1]
                     rectangles_drum.append((x1, y1, x2, y2))
+
                 else:
                     mouse_drag_started_drum = False
 
@@ -319,26 +303,23 @@ def drum() :
         cap_height = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))  # 현재 캠의 세로 해상도           
         width = cap_width * 1.5
         height = cap_height * 1.5           
-        frame = cv2.resize(frame, (int(width), int(height)), interpolation=cv2.INTER_LINEAR)
+        result_drum = cv2.resize(frame, (int(width), int(height)), interpolation=cv2.INTER_LINEAR)
         
         # 이미지를 BGR에서 HSV로 변환
         hsv = cv2.cvtColor(frame, cv2.COLOR_BGR2HSV)
-
-        img = frame.copy()
         cv2.setMouseCallback('drum', mouse_callback)
-        
+
         # 앞서 그린 사각형들이 안 없어지도록 
         for i, rect in enumerate(rectangles_drum):
             x1, y1, x2, y2 = rect
             color = [(0, 165, 255), (0, 0, 255), (0, 255, 0), (255, 0, 0), (0, 0, 0)][i]
-            cv2.rectangle(img, (x1, y1), (x2, y2), color, 2)
+            cv2.rectangle(result_drum, (x1, y1), (x2, y2), color, 2)
 
-        cv2.imshow('drum', img)
+        cv2.imshow('drum', result_drum)
 
         # 객체 색범위 
         lower_blue = (90, 100, 100)
         upper_blue = (120, 255, 255)
-
 
         # 마스크 생성
         mask = cv2.inRange(hsv, lower_blue, upper_blue)
@@ -347,7 +328,7 @@ def drum() :
         closing = cv2.morphologyEx(opening, cv2.MORPH_CLOSE, kernel)
         opening = cv2.morphologyEx(closing, cv2.MORPH_OPEN, kernel)
         closing = cv2.morphologyEx(opening, cv2.MORPH_CLOSE, kernel)
-        # cv2.imshow("closing ",closing )
+        #cv2.imshow("closing ",closing )
         
         # 객체 검출
         contours, _ = cv2.findContours(closing, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
@@ -355,16 +336,16 @@ def drum() :
         # 두 개의 가장 큰 객체만 추출
         contours = sorted(contours, key=cv2.contourArea, reverse=True)[:2]
 
-        #모든 영역 클릭하면 실행
+        # 모든 영역 클릭하면 실행
         if contours and len(rectangles_drum) > 3:
-            # 객체 위치 추출
-            event = [-1, -1]  # 두 개의 객체에 대한 event 초기화
+            # 두 개의 객체에 대한 event 초기화
+            event = [-1, -1] 
             for i, c in enumerate(contours):
                 x, y, w, h = cv2.boundingRect(c)
                 cx = x + w // 2
                 cy = y + h // 2
         
-                # 중심 좌표를 사용하여 소리 재생
+            # 중심 좌표를 사용하여 소리 재생
                 if rectangles_drum[0][0] < cx < rectangles_drum[0][2] and rectangles_drum[0][1] < cy < rectangles_drum[0][3]:
                     event[i] = 1
                 elif rectangles_drum[1][0] < cx < rectangles_drum[1][2] and rectangles_drum[1][1] < cy < rectangles_drum[1][3]:
@@ -373,8 +354,8 @@ def drum() :
                     event[i] = 3
                 elif rectangles_drum[3][0] < cx < rectangles_drum[3][2] and rectangles_drum[3][1] < cy < rectangles_drum[3][3]:
                     event[i] = 4
-                #객체 표시
-                cv2.circle(img,(cx,cy),max(w,h)//2,(255,255,255),2)
+            # 객체 표시
+                cv2.circle(result_drum,(cx,cy),max(w,h)//2,(255,255,255),2)
 
             # 두 개의 event 값을 독립적으로 처리
             if event[0] != -1:
@@ -413,7 +394,7 @@ def drum() :
             print(event)
         
         # 결과 출력
-        cv2.imshow('drum', img)
+        cv2.imshow('drum', result_drum)
 
         # 'q' 키를 누르면 종료
         if cv2.waitKey(1) & 0xFF == ord('q'):
