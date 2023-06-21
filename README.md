@@ -465,3 +465,28 @@ drum
    - 한 카메라 안에 합주 가능하도록
    - 화면 크기 조정 가능하도록, 숫자 입력 받아서 
    - 흰건반 개수도 입력받아야함 
+
+
+## 2023-06-21
+    while not exit_event.is_set():
+        while arr1_event != [] and arr1_event != prev_arr1 :
+            
+            threads_list = []
+
+            # MIDI 파일 재생 스레드 생성, 추가
+            for i in arr1_event:
+                midi_thread = threading.Thread(target=play_mido, args=(midi_filename[i],))
+                threads_list.append(midi_thread)
+            #스레드 실행
+            for t in threads_list:
+                t.start()
+            #스레드 끝날때 까지 대기 
+            for t in threads_list:
+                t.join()
+            prev_arr1 = arr1_event 
+ 에서 prev_arr1이랑 비교하는 부분 빼면 좀 빨라지는듯??
+
+
+ join없애니깐 뭔가잘 인식하는데 너무 잘인식함
+
+ 문제 - midi파일 재생 스레드가 시작되고 재생되는 동안 손위치 바뀌면 씹히는듯 .
