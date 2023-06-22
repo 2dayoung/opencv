@@ -206,6 +206,10 @@ def which_note():
 #=====================================================================
 # piano선택시 실행 함수 
 #=====================================================================
+def compare_lists(list1, list2):
+    changed_elements = set(list2) - set(list1)  # 두 집합의 차집합을 구함
+    return list(changed_elements)  # 결과를 리스트로 변환하여 반환
+
 def piano():
     # 종료 신호를 전달하기 위한 이벤트 객체
     global exit_event
@@ -224,8 +228,11 @@ def piano():
             
             threads_list = []
 
+            # 리스트로 변경
+            pressed_key=compare_lists(pressed_keys, previous_key)
+            print(pressed_key)
             # MIDI 파일 재생 스레드 생성, 추가
-            for i in pressed_keys:
+            for i in pressed_key:
                 midi_thread = threading.Thread(target=play_mido, args=(midi_filename[i],))
                 threads_list.append(midi_thread)
                 
@@ -233,9 +240,9 @@ def piano():
             for t in threads_list:
                 t.start()
 
-            #스레드 끝날때 까지 대기 
-            for t in threads_list:
-                t.join()
+            # #스레드 끝날때 까지 대기 
+            # for t in threads_list:
+            #     t.join()
 
             previous_key = pressed_keys 
 
